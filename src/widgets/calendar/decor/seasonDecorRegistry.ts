@@ -1,0 +1,69 @@
+import type { Season } from '../../../entities/calendar/model/calendar'
+import autumnBranchHero from '../../../assets/calendar-decor/elements/autumn/branch-01.png?url'
+import autumnBranchSub from '../../../assets/calendar-decor/elements/autumn/branch-03.png?url'
+import autumnFloater from '../../../assets/calendar-decor/elements/autumn/decor-01.png?url'
+import autumnGround from '../../../assets/calendar-decor/elements/autumn/decor-04.png?url'
+import autumnMascot from '../../../assets/calendar-decor/elements/autumn/decor-06.png?url'
+import autumnRibbon from '../../../assets/calendar-decor/elements/autumn/decor-09.png?url'
+import springBranchSub from '../../../assets/calendar-decor/elements/spring/branch-02.png?url'
+import springBranchHero from '../../../assets/calendar-decor/elements/spring/branch-04.png?url'
+import springFloater from '../../../assets/calendar-decor/elements/spring/decor-02.png?url'
+import springMascot from '../../../assets/calendar-decor/elements/spring/decor-04.png?url'
+import springRibbon from '../../../assets/calendar-decor/elements/spring/decor-10.png?url'
+import springGround from '../../../assets/calendar-decor/elements/spring/decor-11.png?url'
+import summerBranchSub from '../../../assets/calendar-decor/elements/summer/branch-01.png?url'
+import summerBranchHero from '../../../assets/calendar-decor/elements/summer/branch-03.png?url'
+import summerFloater from '../../../assets/calendar-decor/elements/summer/decor-05.png?url'
+import summerMascot from '../../../assets/calendar-decor/elements/summer/decor-08.png?url'
+import summerGround from '../../../assets/calendar-decor/elements/summer/decor-11.png?url'
+import summerRibbon from '../../../assets/calendar-decor/elements/summer/decor-13.png?url'
+import winterBranchSub from '../../../assets/calendar-decor/elements/winter/branch-02.png?url'
+import winterBranchHero from '../../../assets/calendar-decor/elements/winter/branch-04.png?url'
+import winterFloater from '../../../assets/calendar-decor/elements/winter/decor-02.png?url'
+import winterGround from '../../../assets/calendar-decor/elements/winter/decor-05.png?url'
+import winterMascot from '../../../assets/calendar-decor/elements/winter/decor-07.png?url'
+import winterRibbon from '../../../assets/calendar-decor/elements/winter/decor-08.png?url'
+
+export type SeasonDecorSet = {
+  hero: string
+  sub: string
+  mascot: string
+  floater: string
+  ground: string
+  ribbon: string
+}
+
+export const seasonDecor: Record<Season, SeasonDecorSet> = {
+  spring: {
+    hero: springBranchHero,
+    sub: springBranchSub,
+    mascot: springMascot,
+    floater: springFloater,
+    ground: springGround,
+    ribbon: springRibbon,
+  },
+  summer: {
+    hero: summerBranchHero,
+    sub: summerBranchSub,
+    mascot: summerMascot,
+    floater: summerFloater,
+    ground: summerGround,
+    ribbon: summerRibbon,
+  },
+  autumn: {
+    hero: autumnBranchHero,
+    sub: autumnBranchSub,
+    mascot: autumnMascot,
+    floater: autumnFloater,
+    ground: autumnGround,
+    ribbon: autumnRibbon,
+  },
+  winter: {
+    hero: winterBranchHero,
+    sub: winterBranchSub,
+    mascot: winterMascot,
+    floater: winterFloater,
+    ground: winterGround,
+    ribbon: winterRibbon,
+  },
+}

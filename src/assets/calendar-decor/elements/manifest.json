@@ -1,0 +1,513 @@
+[
+  {
+    "season": "spring",
+    "kind": "branch",
+    "count": 4,
+    "written": [
+      {
+        "name": "branch-01.png",
+        "x": 4,
+        "y": 9,
+        "w": 105,
+        "h": 33
+      },
+      {
+        "name": "branch-02.png",
+        "x": 117,
+        "y": 1,
+        "w": 103,
+        "h": 93
+      },
+      {
+        "name": "branch-03.png",
+        "x": 221,
+        "y": 0,
+        "w": 103,
+        "h": 114
+      },
+      {
+        "name": "branch-04.png",
+        "x": 331,
+        "y": 0,
+        "w": 89,
+        "h": 103
+      }
+    ]
+  },
+  {
+    "season": "spring",
+    "kind": "decor",
+    "count": 11,
+    "written": [
+      {
+        "name": "decor-01.png",
+        "x": 115,
+        "y": 47,
+        "w": 38,
+        "h": 38
+      },
+      {
+        "name": "decor-02.png",
+        "x": 134,
+        "y": 3,
+        "w": 43,
+        "h": 42
+      },
+      {
+        "name": "decor-03.png",
+        "x": 194,
+        "y": 5,
+        "w": 69,
+        "h": 67
+      },
+      {
+        "name": "decor-04.png",
+        "x": 266,
+        "y": 50,
+        "w": 50,
+        "h": 42
+      },
+      {
+        "name": "decor-05.png",
+        "x": 287,
+        "y": 3,
+        "w": 45,
+        "h": 57
+      },
+      {
+        "name": "decor-06.png",
+        "x": 355,
+        "y": 2,
+        "w": 65,
+        "h": 54
+      },
+      {
+        "name": "decor-07.png",
+        "x": 396,
+        "y": 51,
+        "w": 24,
+        "h": 40
+      },
+      {
+        "name": "decor-08.png",
+        "x": 96,
+        "y": 96,
+        "w": 70,
+        "h": 18
+      },
+      {
+        "name": "decor-09.png",
+        "x": 187,
+        "y": 91,
+        "w": 53,
+        "h": 23
+      },
+      {
+        "name": "decor-10.png",
+        "x": 264,
+        "y": 98,
+        "w": 52,
+        "h": 16
+      },
+      {
+        "name": "decor-11.png",
+        "x": 345,
+        "y": 98,
+        "w": 75,
+        "h": 16
+      }
+    ]
+  },
+  {
+    "season": "summer",
+    "kind": "branch",
+    "count": 4,
+    "written": [
+      {
+        "name": "branch-01.png",
+        "x": 0,
+        "y": 0,
+        "w": 109,
+        "h": 104
+      },
+      {
+        "name": "branch-02.png",
+        "x": 117,
+        "y": 0,
+        "w": 103,
+        "h": 88
+      },
+      {
+        "name": "branch-03.png",
+        "x": 217,
+        "y": 0,
+        "w": 106,
+        "h": 108
+      },
+      {
+        "name": "branch-04.png",
+        "x": 331,
+        "y": 0,
+        "w": 89,
+        "h": 92
+      }
+    ]
+  },
+  {
+    "season": "summer",
+    "kind": "decor",
+    "count": 15,
+    "written": [
+      {
+        "name": "decor-01.png",
+        "x": 5,
+        "y": 0,
+        "w": 49,
+        "h": 54
+      },
+      {
+        "name": "decor-02.png",
+        "x": 65,
+        "y": 0,
+        "w": 63,
+        "h": 58
+      },
+      {
+        "name": "decor-03.png",
+        "x": 135,
+        "y": 0,
+        "w": 49,
+        "h": 58
+      },
+      {
+        "name": "decor-04.png",
+        "x": 200,
+        "y": 0,
+        "w": 41,
+        "h": 59
+      },
+      {
+        "name": "decor-05.png",
+        "x": 259,
+        "y": 0,
+        "w": 53,
+        "h": 49
+      },
+      {
+        "name": "decor-06.png",
+        "x": 329,
+        "y": 4,
+        "w": 40,
+        "h": 42
+      },
+      {
+        "name": "decor-07.png",
+        "x": 377,
+        "y": 1,
+        "w": 43,
+        "h": 49
+      },
+      {
+        "name": "decor-08.png",
+        "x": 6,
+        "y": 65,
+        "w": 52,
+        "h": 49
+      },
+      {
+        "name": "decor-09.png",
+        "x": 72,
+        "y": 74,
+        "w": 40,
+        "h": 39
+      },
+      {
+        "name": "decor-10.png",
+        "x": 132,
+        "y": 75,
+        "w": 34,
+        "h": 38
+      },
+      {
+        "name": "decor-11.png",
+        "x": 180,
+        "y": 83,
+        "w": 56,
+        "h": 14
+      },
+      {
+        "name": "decor-12.png",
+        "x": 182,
+        "y": 94,
+        "w": 54,
+        "h": 13
+      },
+      {
+        "name": "decor-13.png",
+        "x": 248,
+        "y": 72,
+        "w": 60,
+        "h": 25
+      },
+      {
+        "name": "decor-14.png",
+        "x": 315,
+        "y": 78,
+        "w": 59,
+        "h": 26
+      },
+      {
+        "name": "decor-15.png",
+        "x": 381,
+        "y": 81,
+        "w": 39,
+        "h": 30
+      }
+    ]
+  },
+  {
+    "season": "autumn",
+    "kind": "branch",
+    "count": 4,
+    "written": [
+      {
+        "name": "branch-01.png",
+        "x": 0,
+        "y": 0,
+        "w": 111,
+        "h": 87
+      },
+      {
+        "name": "branch-02.png",
+        "x": 119,
+        "y": 0,
+        "w": 103,
+        "h": 78
+      },
+      {
+        "name": "branch-03.png",
+        "x": 227,
+        "y": 0,
+        "w": 95,
+        "h": 89
+      },
+      {
+        "name": "branch-04.png",
+        "x": 333,
+        "y": 0,
+        "w": 87,
+        "h": 80
+      }
+    ]
+  },
+  {
+    "season": "autumn",
+    "kind": "decor",
+    "count": 12,
+    "written": [
+      {
+        "name": "decor-01.png",
+        "x": 10,
+        "y": 0,
+        "w": 46,
+        "h": 45
+      },
+      {
+        "name": "decor-02.png",
+        "x": 78,
+        "y": 0,
+        "w": 38,
+        "h": 42
+      },
+      {
+        "name": "decor-03.png",
+        "x": 135,
+        "y": 0,
+        "w": 42,
+        "h": 39
+      },
+      {
+        "name": "decor-04.png",
+        "x": 193,
+        "y": 0,
+        "w": 46,
+        "h": 43
+      },
+      {
+        "name": "decor-05.png",
+        "x": 258,
+        "y": 0,
+        "w": 33,
+        "h": 36
+      },
+      {
+        "name": "decor-06.png",
+        "x": 312,
+        "y": 0,
+        "w": 40,
+        "h": 40
+      },
+      {
+        "name": "decor-07.png",
+        "x": 350,
+        "y": 38,
+        "w": 20,
+        "h": 20
+      },
+      {
+        "name": "decor-08.png",
+        "x": 379,
+        "y": 0,
+        "w": 41,
+        "h": 40
+      },
+      {
+        "name": "decor-09.png",
+        "x": 41,
+        "y": 54,
+        "w": 68,
+        "h": 28
+      },
+      {
+        "name": "decor-10.png",
+        "x": 129,
+        "y": 57,
+        "w": 68,
+        "h": 27
+      },
+      {
+        "name": "decor-11.png",
+        "x": 231,
+        "y": 52,
+        "w": 34,
+        "h": 35
+      },
+      {
+        "name": "decor-12.png",
+        "x": 295,
+        "y": 47,
+        "w": 81,
+        "h": 44
+      }
+    ]
+  },
+  {
+    "season": "winter",
+    "kind": "branch",
+    "count": 4,
+    "written": [
+      {
+        "name": "branch-01.png",
+        "x": 0,
+        "y": 0,
+        "w": 103,
+        "h": 83
+      },
+      {
+        "name": "branch-02.png",
+        "x": 115,
+        "y": 0,
+        "w": 97,
+        "h": 83
+      },
+      {
+        "name": "branch-03.png",
+        "x": 219,
+        "y": 0,
+        "w": 103,
+        "h": 83
+      },
+      {
+        "name": "branch-04.png",
+        "x": 327,
+        "y": 0,
+        "w": 93,
+        "h": 80
+      }
+    ]
+  },
+  {
+    "season": "winter",
+    "kind": "decor",
+    "count": 11,
+    "written": [
+      {
+        "name": "decor-01.png",
+        "x": 8,
+        "y": 0,
+        "w": 41,
+        "h": 46
+      },
+      {
+        "name": "decor-02.png",
+        "x": 63,
+        "y": 0,
+        "w": 39,
+        "h": 43
+      },
+      {
+        "name": "decor-03.png",
+        "x": 142,
+        "y": 10,
+        "w": 24,
+        "h": 26
+      },
+      {
+        "name": "decor-04.png",
+        "x": 178,
+        "y": 0,
+        "w": 37,
+        "h": 36
+      },
+      {
+        "name": "decor-05.png",
+        "x": 222,
+        "y": 0,
+        "w": 42,
+        "h": 48
+      },
+      {
+        "name": "decor-06.png",
+        "x": 299,
+        "y": 1,
+        "w": 42,
+        "h": 43
+      },
+      {
+        "name": "decor-07.png",
+        "x": 371,
+        "y": 14,
+        "w": 49,
+        "h": 73
+      },
+      {
+        "name": "decor-08.png",
+        "x": 31,
+        "y": 54,
+        "w": 68,
+        "h": 28
+      },
+      {
+        "name": "decor-09.png",
+        "x": 118,
+        "y": 55,
+        "w": 67,
+        "h": 27
+      },
+      {
+        "name": "decor-10.png",
+        "x": 204,
+        "y": 56,
+        "w": 68,
+        "h": 28
+      },
+      {
+        "name": "decor-11.png",
+        "x": 293,
+        "y": 42,
+        "w": 61,
+        "h": 46
+      }
+    ]
+  }
+]
