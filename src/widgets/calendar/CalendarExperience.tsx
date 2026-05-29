@@ -1,5 +1,9 @@
 import { memo, useMemo, useState, type CSSProperties, type FormEvent } from 'react'
 import styled from '@emotion/styled'
+import type { DayCellContentArg } from '@fullcalendar/core'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin, { type DateClickArg } from '@fullcalendar/interaction'
+import FullCalendar from '@fullcalendar/react'
 import {
   getCalendarDays,
   getPlantMoisture,
@@ -52,7 +56,13 @@ const taskComposerOptions = [
 type TaskComposerValue = (typeof taskComposerOptions)[number]['value']
 
 const leafNodes = Array.from({ length: 6 }, (_, index) => index + 1)
-const cellLeafNodes = Array.from({ length: 4 }, (_, index) => index + 1)
+
+const fullCalendarSeasonConfig: Record<Season, { initialDate: string; gridStart: string }> = {
+  spring: { initialDate: '2024-04-01', gridStart: '2024-04-01' },
+  summer: { initialDate: '2024-07-01', gridStart: '2024-07-01' },
+  autumn: { initialDate: '2024-10-01', gridStart: '2024-09-30' },
+  winter: { initialDate: '2024-12-01', gridStart: '2024-11-25' },
+}
 
 function getCellPlantSlot(total: number, index: number) {
   return (total === 1 ? [50] : total === 2 ? [36, 64] : [27, 52, 73])[index] ?? 50
@@ -68,6 +78,20 @@ function getBaseMoisture(season: Season): CalendarMoisture {
 
 function withMoisture(day: CalendarDay, moisture: CalendarMoisture): CalendarDay {
   return { ...day, moisture }
+}
+
+function getDayOffset(startDateKey: string, date: Date) {
+  const [startYear, startMonth, startDay] = startDateKey.split('-').map(Number)
+  const startUtc = Date.UTC(startYear, startMonth - 1, startDay)
+  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+
+  return Math.round((dateUtc - startUtc) / 86_400_000)
+}
+
+function getFullCalendarDay(season: Season, days: CalendarDay[], date: Date) {
+  const offset = getDayOffset(fullCalendarSeasonConfig[season].gridStart, date)
+
+  return offset >= 0 && offset < days.length ? days[offset] : undefined
 }
 
 export function CalendarExperience() {
@@ -143,6 +167,25 @@ function Sidebar() {
 function CalendarMain({ season, days }: { season: Season; days: CalendarDay[] }) {
   const setSeason = useCalendarStore((state) => state.setSeason)
   const selectDate = useCalendarStore((state) => state.selectDate)
+  const calendarConfig = fullCalendarSeasonConfig[season]
+
+  function renderDayCell(arg: DayCellContentArg) {
+    const day = getFullCalendarDay(season, days, arg.date)
+
+    if (!day) {
+      return null
+    }
+
+    return <MemoizedCalendarCell season={season} day={day} onSelectDate={selectDate} />
+  }
+
+  function handleDateClick(arg: DateClickArg) {
+    const day = getFullCalendarDay(season, days, arg.date)
+
+    if (day?.inMonth) {
+      selectDate(day.date)
+    }
+  }
 
   return (
     <CalendarArea>
@@ -175,7 +218,14 @@ function CalendarMain({ season, days }: { season: Season; days: CalendarDay[] })
         <SoftButton type="button">월간 보기⌄</SoftButton>
         <SeasonTabs>
           {seasonOrder.map((seasonKey) => (
-            <SeasonTab key={seasonKey} type="button" active={season === seasonKey} seasonKey={seasonKey} onClick={() => setSeason(seasonKey)}>
+            <SeasonTab
+              key={seasonKey}
+              type="button"
+              active={season === seasonKey}
+              seasonKey={seasonKey}
+              data-season-tab={seasonKey}
+              onClick={() => setSeason(seasonKey)}
+            >
               <span aria-hidden="true" />
               {seasonMeta[seasonKey].label}
             </SeasonTab>
@@ -192,9 +242,21 @@ function CalendarMain({ season, days }: { season: Season; days: CalendarDay[] })
           ))}
         </WeekHeader>
         <CalendarGrid>
-          {days.map((day, index) => (
-            <MemoizedCalendarCell key={`${day.date}-${index}`} season={season} day={day} onSelectDate={selectDate} />
-          ))}
+          <FullCalendar
+            key={season}
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            initialDate={calendarConfig.initialDate}
+            firstDay={1}
+            fixedWeekCount
+            showNonCurrentDates
+            dayHeaders={false}
+            headerToolbar={false}
+            height="auto"
+            contentHeight="auto"
+            dayCellContent={renderDayCell}
+            dateClick={handleDateClick}
+          />
         </CalendarGrid>
       </CalendarFrame>
     </CalendarArea>
@@ -203,7 +265,23 @@ function CalendarMain({ season, days }: { season: Season; days: CalendarDay[] })
 
 function CalendarCell({ season, day, onSelectDate }: { season: Season; day: CalendarDay; onSelectDate: (date: number) => void }) {
   return (
-    <DayCell season={season} day={day} type="button" onClick={() => day.inMonth && onSelectDate(day.date)} aria-label={day.isToday ? `오늘, ${day.date}일` : `${day.date}일`}>
+    <DayCell
+      season={season}
+      day={day}
+      role="button"
+      tabIndex={day.inMonth ? 0 : -1}
+      aria-label={day.isToday ? `오늘, ${day.date}일` : `${day.date}일`}
+      data-in-month={day.inMonth}
+      data-plant-count={day.plants.length}
+      data-fullcalendar-date={day.inMonth ? day.date : undefined}
+      onKeyDown={(event) => {
+        if (!day.inMonth) return
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onSelectDate(day.date)
+        }
+      }}
+    >
       {day.isToday ? <TodayBadge>오늘</TodayBadge> : null}
       <DateText day={day}>{day.date}</DateText>
       {day.tasks.length > 0 ? <TaskPreview tasks={day.tasks} /> : null}
@@ -228,7 +306,7 @@ function TaskPreview({ tasks }: { tasks: CalendarTask[] }) {
 }
 
 function CellGarden({ season, day }: { season: Season; day: CalendarDay }) {
-  const displayPlants = day.plants.slice(0, day.isSelected ? 2 : 1)
+  const displayPlants = day.plants
   const neutralDay = withMoisture(day, getBaseMoisture(season))
 
   return (
@@ -281,6 +359,7 @@ function CellPlant({
 
   return (
     <CellPlantCluster
+      data-cell-plant={plant.kind}
       style={
         {
           '--x': `${getCellPlantSlot(total, index)}%`,
@@ -313,7 +392,7 @@ function CellPlant({
         <span className="stem stem-a" />
         <span className="stem stem-b" />
         <span className="stem stem-c" />
-        {cellLeafNodes.map((leafIndex) => (
+        {leafNodes.map((leafIndex) => (
           <span key={leafIndex} className={`leaf leaf-${leafIndex}`} />
         ))}
         <span className="bloom bloom-a" />
@@ -478,7 +557,7 @@ function DayDetail({ season, day, onClose }: { season: Season; day: CalendarDay;
       <DetailSection>
         <h3>이 날의 식물 상태</h3>
         {day.plants.map((plant) => (
-          <DetailPlant key={`detail-line-${plant.name}`} style={{ '--tone': plant.tone } as CSSProperties}>
+          <DetailPlant key={`detail-line-${plant.name}`} data-detail-plant-row={plant.kind} style={{ '--tone': plant.tone } as CSSProperties}>
             <PlantAvatar plant={plant} />
             <span>{plant.name}</span>
             <i />
@@ -522,7 +601,11 @@ function PottedPlantCluster({
   const moisture = getPlantMoisture(day, plant)
 
   return (
-    <DetailPlantClusterFrame compact={compact} style={{ '--x': `${getDetailPlantSlot(total, index)}%` } as CSSProperties}>
+    <DetailPlantClusterFrame
+      compact={compact}
+      data-detail-scene-plant={compact ? undefined : plant.kind}
+      style={{ '--x': `${getDetailPlantSlot(total, index)}%` } as CSSProperties}
+    >
       <DetailSoilPatch compact={compact} moisture={moisture} season={season}>
         <span className="soil-shine" />
         {moisture === 'wet' ? <span className="puddle" /> : null}
@@ -548,7 +631,8 @@ function PottedPlant({
   const scale = 0.72 + growth * 0.055 + (plant.kind === 'monstera' ? 0.08 : 0)
 
   return (
-    <PlantNode
+    <CellPlantNode
+      active={false}
       plant={plant}
       muted={muted}
       style={
@@ -559,14 +643,16 @@ function PottedPlant({
       }
     >
       <span className="pot" />
+      <span className="pot-lip" />
       <span className="stem stem-a" />
       <span className="stem stem-b" />
+      <span className="stem stem-c" />
       {leafNodes.map((leafIndex) => (
         <span key={leafIndex} className={`leaf leaf-${leafIndex}`} />
       ))}
-      <span className="flower flower-a" />
-      <span className="flower flower-b" />
-    </PlantNode>
+      <span className="bloom bloom-a" />
+      <span className="bloom bloom-b" />
+    </CellPlantNode>
   )
 }
 
@@ -1183,17 +1269,90 @@ const Weekday = styled.div<{ sunday?: boolean }>`
 const CalendarGrid = styled.div`
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 1px;
   background: var(--grid-line);
+
+  .fc {
+    font-family: inherit;
+  }
+
+  .fc .fc-scrollgrid {
+    border: 0;
+  }
+
+  .fc .fc-scrollgrid-section > td {
+    border: 0;
+  }
+
+  .fc .fc-daygrid-body,
+  .fc .fc-scrollgrid-sync-table {
+    width: 100% !important;
+  }
+
+  .fc .fc-scrollgrid-sync-table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    background: var(--grid-line);
+  }
+
+  .fc-theme-standard td,
+  .fc-theme-standard th {
+    border: 0;
+  }
+
+  .fc .fc-daygrid-day {
+    padding: 0;
+    background: transparent;
+    border-right: 1px solid var(--grid-line);
+    border-bottom: 1px solid var(--grid-line);
+  }
+
+  .fc .fc-daygrid-day:last-child {
+    border-right: 0;
+  }
+
+  .fc .fc-scrollgrid-sync-table tbody tr:last-child .fc-daygrid-day {
+    border-bottom: 0;
+  }
+
+  .fc .fc-daygrid-day-frame {
+    min-height: clamp(111px, 12.55vh, 132px);
+    padding: 0;
+  }
+
+  .fc .fc-daygrid-day-top,
+  .fc .fc-daygrid-day-number {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .fc .fc-daygrid-day-events,
+  .fc .fc-daygrid-day-bg {
+    display: none;
+  }
+
+  .fc .fc-daygrid-day.fc-day-today {
+    background: transparent;
+  }
+
+  @media (max-width: 760px) {
+    .fc .fc-daygrid-day-frame {
+      min-height: 92px;
+    }
+  }
 `
 
-const DayCell = styled.button<{ season: Season; day: CalendarDay }>`
+const DayCell = styled.div<{ season: Season; day: CalendarDay }>`
   position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   min-height: clamp(111px, 12.55vh, 132px);
   padding: 13px 12px 0;
   border: 0;
@@ -1201,7 +1360,7 @@ const DayCell = styled.button<{ season: Season; day: CalendarDay }>`
   text-align: left;
   overflow: hidden;
   contain: layout paint;
-  cursor: pointer;
+  cursor: ${({ day }) => (day.inMonth ? 'pointer' : 'default')};
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.24),
     inset 0 -28px 36px rgba(88, 72, 51, 0.022);
@@ -1658,7 +1817,7 @@ const CellSoilPatch = styled.span<{ season: Season; moisture: CalendarMoisture }
 
 const CellPlantNode = styled.span<{ active: boolean; plant: Plant; muted: boolean }>`
   position: absolute;
-  left: 50%;
+  left: var(--x, 50%);
   bottom: 18px;
   z-index: 1;
   width: 38px;
@@ -1933,125 +2092,6 @@ const DetailSoilPatch = styled.span<{ season: Season; moisture: CalendarMoisture
     height: ${({ compact }) => (compact ? '6px' : '8px')};
     border-radius: 50%;
     background: radial-gradient(ellipse at 50% 50%, rgba(40, 77, 83, 0.52), rgba(31, 55, 56, 0.05) 70%);
-  }
-`
-
-const PlantNode = styled.span<{ plant: Plant; muted: boolean }>`
-  position: absolute;
-  left: var(--x);
-  bottom: 4px;
-  z-index: 1;
-  width: 44px;
-  height: 58px;
-  transform: translateX(-50%) scale(var(--scale));
-  transform-origin: 50% 100%;
-  opacity: ${({ muted }) => (muted ? 0.42 : 1)};
-  animation: anchoredBreathe 7s ease-in-out infinite;
-
-  .pot {
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    width: ${({ plant }) => (plant.kind === 'monstera' ? '19px' : '17px')};
-    height: 14px;
-    border-radius: 4px 4px 7px 7px;
-    background: ${({ plant }) =>
-      plant.kind === 'peperomia'
-        ? 'linear-gradient(135deg, #b46d35, #7d4d30)'
-        : plant.kind === 'sansevieria'
-          ? 'linear-gradient(135deg, #d9d5c2, #8b8067)'
-          : 'linear-gradient(135deg, #f1eadc, #9b8669)'};
-    box-shadow:
-      inset 0 -5px 8px rgba(47, 34, 24, 0.18),
-      0 4px 5px rgba(43, 33, 23, 0.12);
-    transform: translateX(-50%);
-  }
-
-  .stem {
-    position: absolute;
-    left: 50%;
-    bottom: 12px;
-    width: 2px;
-    height: 24px;
-    border-radius: ${radii.round};
-    background: #58743e;
-    transform-origin: bottom center;
-  }
-
-  .stem-a {
-    transform: translateX(-50%) rotate(-8deg);
-  }
-
-  .stem-b {
-    transform: translateX(-50%) rotate(10deg);
-    opacity: 0.72;
-  }
-
-  .leaf {
-    position: absolute;
-    background: ${({ plant }) =>
-      plant.kind === 'peace'
-        ? 'linear-gradient(135deg, #6f8f52, #375f35)'
-        : plant.kind === 'sansevieria'
-          ? 'linear-gradient(90deg, #2e6032, #88a85c 48%, #315f33)'
-          : 'linear-gradient(135deg, #6a9852, #2f6934)'};
-    box-shadow: inset -2px -2px 4px rgba(28, 53, 27, 0.14);
-  }
-
-  ${({ plant }) =>
-    plant.kind === 'sansevieria'
-      ? `
-    .leaf {
-      bottom: 14px;
-      left: 50%;
-      width: 7px;
-      height: 40px;
-      border-radius: 80% 80% 15% 15%;
-      transform-origin: bottom center;
-    }
-    .leaf-1 { transform: translateX(-50%) rotate(-18deg); height: 34px; }
-    .leaf-2 { transform: translateX(-50%) rotate(-8deg); height: 42px; }
-    .leaf-3 { transform: translateX(-50%) rotate(4deg); height: 47px; }
-    .leaf-4 { transform: translateX(-50%) rotate(14deg); height: 39px; }
-    .leaf-5 { transform: translateX(-50%) rotate(24deg); height: 31px; }
-    .leaf-6 { display: none; }
-    .stem { display: none; }
-  `
-      : `
-    .leaf {
-      width: ${plant.kind === 'monstera' ? '18px' : '14px'};
-      height: ${plant.kind === 'monstera' ? '17px' : '13px'};
-      border-radius: 80% 12% 80% 18%;
-      transform-origin: 50% 100%;
-    }
-    .leaf-1 { left: 8px; bottom: 29px; transform: rotate(-34deg); }
-    .leaf-2 { left: 20px; bottom: 35px; transform: rotate(15deg); }
-    .leaf-3 { left: 25px; bottom: 25px; transform: rotate(42deg); }
-    .leaf-4 { left: 12px; bottom: 20px; transform: rotate(-12deg); }
-    .leaf-5 { left: 19px; bottom: 18px; transform: rotate(62deg) scale(.88); }
-    .leaf-6 { left: 5px; bottom: 18px; transform: rotate(-58deg) scale(.82); }
-  `}
-
-  .flower {
-    position: absolute;
-    display: ${({ plant }) => (plant.kind === 'peace' ? 'block' : 'none')};
-    width: 10px;
-    height: 16px;
-    border-radius: 70% 30% 70% 30%;
-    background: linear-gradient(135deg, #fffdf0, #e5dfca);
-    box-shadow: 0 2px 5px rgba(70, 64, 45, 0.08);
-  }
-
-  .flower-a {
-    left: 18px;
-    bottom: 39px;
-    transform: rotate(18deg);
-  }
-
-  .flower-b {
-    left: 30px;
-    bottom: 31px;
-    transform: rotate(-18deg) scale(0.86);
   }
 `
 
