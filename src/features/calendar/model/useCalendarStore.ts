@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import {
   getCalendarDateKey,
+  seasonOrder,
   type CalendarTaskType,
   type CompletedTaskMap,
   type Season,
@@ -40,9 +41,21 @@ const selectedDateBySeason: Record<Season, number> = {
   winter: 25,
 }
 
+function getInitialSeason(): Season {
+  if (typeof window === 'undefined') {
+    return 'spring'
+  }
+
+  const seasonParam = new URLSearchParams(window.location.search).get('season') as Season | null
+
+  return seasonParam && seasonOrder.includes(seasonParam) ? seasonParam : 'spring'
+}
+
+const initialSeason = getInitialSeason()
+
 export const useCalendarStore = create<CalendarStore>((set) => ({
-  season: 'spring',
-  selectedDate: selectedDateBySeason.spring,
+  season: initialSeason,
+  selectedDate: selectedDateBySeason[initialSeason],
   showDetail: false,
   completedTaskIds: {},
   userTasksByDate: {},

@@ -2,10 +2,6 @@ import styled from '@emotion/styled'
 import { memo, type CSSProperties } from 'react'
 import type { Season } from '../../../entities/calendar/model/calendar'
 import { seasonTheme } from '../../../shared/design-system/tokens'
-import autumnCanopy from '../../../assets/canopy-overlays/autumn-canopy.png?url'
-import springCanopy from '../../../assets/canopy-overlays/spring-canopy.png?url'
-import summerCanopy from '../../../assets/canopy-overlays/summer-canopy.png?url'
-import winterCanopy from '../../../assets/canopy-overlays/winter-canopy.png?url'
 
 const particles: [number, number, number, number][] = [
   [47, 12, 3, 0.24],
@@ -15,13 +11,6 @@ const particles: [number, number, number, number][] = [
   [92, 18, 3, 0.2],
   [69, 46, 4, 0.12],
 ]
-
-const canopyImages: Record<Season, string> = {
-  spring: springCanopy,
-  summer: summerCanopy,
-  autumn: autumnCanopy,
-  winter: winterCanopy,
-}
 
 export const CanopyAtmosphere = memo(function CanopyAtmosphere({ season }: { season: Season }) {
   return (
@@ -35,7 +24,6 @@ export const CanopyAtmosphere = memo(function CanopyAtmosphere({ season }: { sea
         <span className="window-shadow" />
         <span className="diffused-shadow" />
       </ShadowWash>
-      <SeasonalCanopy src={canopyImages[season]} alt="" aria-hidden="true" season={season} decoding="async" />
       <AtmosphericParticles season={season}>
         {particles.map(([x, y, size, opacity], index) => (
           <Particle
@@ -145,25 +133,6 @@ const ShadowWash = styled.div<{ season: Season }>`
       radial-gradient(ellipse at 78% 30%, ${({ season }) => seasonalShadow(season)}, transparent 28%),
       radial-gradient(ellipse at 44% 58%, ${({ season }) => seasonalShadow(season)}, transparent 36%);
     opacity: ${({ season }) => (season === 'summer' ? 0.42 : 0.28)};
-  }
-`
-
-const SeasonalCanopy = styled.img<{ season: Season }>`
-  position: fixed;
-  top: 0;
-  right: 0;
-  z-index: 1;
-  width: ${({ season }) => (season === 'autumn' ? 'min(34vw, 480px)' : season === 'summer' ? 'min(30vw, 430px)' : 'min(32vw, 450px)')};
-  max-width: none;
-  pointer-events: none;
-  user-select: none;
-  display: block;
-  contain: layout paint;
-  opacity: ${({ season }) => (season === 'winter' ? 0.72 : season === 'summer' ? 0.78 : 0.84)};
-
-  @media (max-width: 900px) {
-    width: min(54vw, 300px);
-    opacity: 0.58;
   }
 `
 

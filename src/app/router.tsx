@@ -1,15 +1,25 @@
+import { useState, useEffect } from 'react'
 import { CalendarPage } from '../pages/calendar/CalendarPage'
+import { RegisterPage } from '../pages/register/RegisterPage'
+import { CareInfoPage } from '../pages/care-info/CareInfoPage'
+import { AnalyzePage } from '../pages/analyze/AnalyzePage'
 
-const routes = {
-  calendar: '/',
-} as const
+function getPath() {
+  return window.location.pathname
+}
 
 export function Router() {
-  const pathname = window.location.pathname
+  const [pathname, setPathname] = useState(getPath)
 
-  if (pathname === routes.calendar) {
-    return <CalendarPage />
-  }
+  useEffect(() => {
+    const onPop = () => setPathname(getPath())
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  if (pathname === '/register') return <RegisterPage />
+  if (pathname === '/care-info') return <CareInfoPage />
+  if (pathname === '/analyze') return <AnalyzePage />
 
   return <CalendarPage />
 }

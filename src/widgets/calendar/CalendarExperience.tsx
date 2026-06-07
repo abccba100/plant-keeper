@@ -22,13 +22,18 @@ import { radii, seasonTheme, shadows } from '../../shared/design-system/tokens'
 import { CanopyAtmosphere } from './atmosphere/CanopyAtmosphere'
 import { seasonDecor } from './decor/seasonDecorRegistry'
 
+function navigate(path: string) {
+  window.history.pushState({}, '', path)
+  window.dispatchEvent(new PopStateEvent('popstate'))
+}
+
 const navItems = [
-  { icon: '↥', label: '식물 이미지 업로드' },
-  { icon: '◎', label: 'AI 식물 인식' },
-  { icon: '◷', label: '기본 관리 정보' },
-  { icon: '✎', label: '식물 상태 입력' },
-  { icon: '⌕', label: '상태 진단 결과' },
-  { icon: '⌘', label: '내 식물 등록' },
+  { icon: '↥', label: '식물 이미지 업로드', path: '/register' },
+  { icon: '◎', label: 'AI 식물 인식', path: '/register' },
+  { icon: '◷', label: '기본 관리 정보', path: '/care-info' },
+  { icon: '✎', label: '식물 상태 입력', path: '/analyze' },
+  { icon: '⌕', label: '상태 진단 결과', path: '/analyze' },
+  { icon: '⌘', label: '내 식물 등록', path: '/register' },
 ]
 
 const taskTone: Record<CalendarTask['type'], { icon: string; label: string }> = {
@@ -107,10 +112,11 @@ export function CalendarExperience() {
   return (
     <Shell season={season}>
       <CanopyAtmosphere season={season} />
-      <PageHeroBranch season={season} aria-hidden="true" />
-      <PageSubBranch season={season} aria-hidden="true" />
-      <PageMascot season={season} aria-hidden="true" />
-      <PageFloater season={season} aria-hidden="true" />
+      <PageHeroShadow season={season} data-calendar-decor="page-hero-shadow" aria-hidden="true" />
+      <PageHeroBranch season={season} data-calendar-decor="page-hero" aria-hidden="true" />
+      <PageSubBranch season={season} data-calendar-decor="page-sub" aria-hidden="true" />
+      <PageMascot season={season} data-calendar-decor="page-mascot" aria-hidden="true" />
+      <PageFloater season={season} data-calendar-decor="page-floater" aria-hidden="true" />
       <MemoizedSidebar />
       <Workspace>
         <CalendarMain season={season} days={days} />
@@ -131,7 +137,7 @@ function Sidebar() {
       </Brand>
       <Nav>
         {navItems.map((item) => (
-          <NavItem key={item.label}>
+          <NavItem key={item.label} onClick={() => navigate(item.path)} style={{ cursor: 'pointer' }}>
             <NavIcon aria-hidden="true">{item.icon}</NavIcon>
             {item.label}
           </NavItem>
@@ -233,7 +239,8 @@ function CalendarMain({ season, days }: { season: Season; days: CalendarDay[] })
         </SeasonTabs>
       </Toolbar>
       <CalendarFrame>
-        <CalendarFootGrass season={season} aria-hidden="true" />
+        <CalendarFootGrass season={season} data-calendar-decor="calendar-foot" aria-hidden="true" />
+        <CalendarFootGrassAlt season={season} data-calendar-decor="calendar-foot-alt" aria-hidden="true" />
         <WeekHeader>
           {weekdays.map((weekday, index) => (
             <Weekday key={weekday} sunday={index === 6}>
@@ -283,7 +290,9 @@ function CalendarCell({ season, day, onSelectDate }: { season: Season; day: Cale
       }}
     >
       {day.isToday ? <TodayBadge>오늘</TodayBadge> : null}
-      <DateText day={day}>{day.date}</DateText>
+      <DateText day={day} data-calendar-date-text>
+        {day.date}
+      </DateText>
       {day.tasks.length > 0 ? <TaskPreview tasks={day.tasks} /> : null}
       <Landscape season={season} day={day}>
         <CellGarden season={season} day={day} />
@@ -297,7 +306,7 @@ function TaskPreview({ tasks }: { tasks: CalendarTask[] }) {
   const primaryTask = wateringTask ?? tasks[0]
 
   return (
-    <TaskChip completed={primaryTask.completed}>
+    <TaskChip completed={primaryTask.completed} data-calendar-task-chip>
       <span aria-hidden="true">{primaryTask.completed ? '✓' : taskTone[primaryTask.type].icon}</span>
       {primaryTask.completed ? '완료' : taskTone[primaryTask.type].label}
       {tasks.length > 1 ? <i>+{tasks.length - 1}</i> : null}
@@ -427,7 +436,7 @@ function RightRail({ season }: { season: Season }) {
         ))}
       </RailCard>
       <TipCard season={season}>
-        <TipRibbon season={season} aria-hidden="true" />
+        <TipRibbon season={season} data-calendar-decor="tip-ribbon" aria-hidden="true" />
         <h2>{seasonMeta[season].tipTitle}</h2>
         <p>{seasonMeta[season].tip}</p>
         <TipGarden>
@@ -744,29 +753,65 @@ const Shell = styled.div<{ season: Season }>`
 const PageHeroBranch = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 1;
-  top: -6px;
-  right: clamp(136px, 12vw, 178px);
-  width: ${({ season }) => (season === 'spring' ? '132px' : season === 'autumn' ? '152px' : season === 'summer' ? '148px' : '140px')};
-  aspect-ratio: ${({ season }) => (season === 'spring' ? '89 / 103' : season === 'summer' ? '106 / 108' : season === 'autumn' ? '111 / 87' : '93 / 80')};
+  top: 0;
+  right: 0;
+  width: ${({ season }) => (season === 'spring' ? '382px' : season === 'autumn' ? '470px' : season === 'summer' ? '438px' : '352px')};
+  aspect-ratio: ${({ season }) => (season === 'spring' ? '760 / 543' : season === 'summer' ? '760 / 420' : season === 'autumn' ? '1536 / 1024' : '760 / 483')};
   pointer-events: none;
   display: block;
-  background-image: url(${({ season }) => seasonDecor[season].hero});
-  background-repeat: no-repeat;
-  background-position: right top;
-  background-size: contain;
+  overflow: visible;
+  isolation: isolate;
   backface-visibility: hidden;
-  opacity: ${({ season }) => (season === 'winter' ? 0.8 : 0.88)};
-  transform: rotate(${({ season }) => (season === 'autumn' ? '-2deg' : '4deg')});
-  transform-origin: right top;
+  transform: ${({ season }) => (season === 'autumn' ? 'scaleX(-1) rotate(3deg)' : `rotate(${season === 'summer' ? '1deg' : season === 'winter' ? '2deg' : '3deg'})`)};
+  transform-origin: ${({ season }) => (season === 'autumn' ? 'center top' : 'right top')};
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: block;
+    background-image: url(${({ season }) => seasonDecor[season].hero});
+    background-repeat: no-repeat;
+    background-position: right top;
+    background-size: contain;
+    backface-visibility: hidden;
+  }
+
+  &::before {
+    z-index: 0;
+    opacity: ${({ season }) => (season === 'autumn' ? 0.22 : season === 'summer' ? 0.17 : season === 'winter' ? 0.14 : 0.16)};
+    filter: blur(${({ season }) => (season === 'autumn' ? '13px' : season === 'summer' ? '12px' : '10px')}) brightness(0) saturate(0);
+    mix-blend-mode: multiply;
+    transform: ${({ season }) =>
+      season === 'autumn'
+        ? 'translate(16px, 21px) scale(1.012)'
+        : season === 'summer'
+          ? 'translate(-14px, 18px) scale(1.012)'
+          : season === 'winter'
+            ? 'translate(-10px, 14px) scale(1.008)'
+            : 'translate(-12px, 16px) scale(1.01)'};
+    transform-origin: right top;
+  }
+
+  &::after {
+    z-index: 1;
+    opacity: ${({ season }) => (season === 'winter' ? 0.76 : season === 'spring' ? 0.82 : season === 'summer' ? 0.78 : 0.86)};
+    filter:
+      drop-shadow(0 12px 16px color-mix(in srgb, ${({ season }) => seasonTheme[season].accent} 10%, rgba(70, 56, 42, 0.16)))
+      drop-shadow(0 4px 7px rgba(69, 55, 39, 0.08));
+  }
 
   @media (max-width: 1180px) {
-    right: -8px;
-    width: ${({ season }) => (season === 'autumn' ? '140px' : '128px')};
+    right: 0;
+    width: ${({ season }) => (season === 'spring' ? '292px' : season === 'summer' ? '332px' : season === 'autumn' ? '360px' : '270px')};
   }
 
   @media (max-width: 900px) {
-    width: 116px;
-    opacity: 0.72;
+    right: 0;
+    width: ${({ season }) => (season === 'summer' ? '248px' : season === 'autumn' ? '280px' : '218px')};
+    opacity: 0.62;
   }
 
   @media (max-width: 640px) {
@@ -774,13 +819,48 @@ const PageHeroBranch = styled.span<{ season: Season }>`
   }
 `
 
+const PageHeroShadow = styled.span<{ season: Season }>`
+  position: absolute;
+  z-index: 0;
+  top: ${({ season }) => (season === 'spring' ? '164px' : season === 'summer' ? '130px' : season === 'autumn' ? '224px' : '122px')};
+  right: 0;
+  width: ${({ season }) => (season === 'spring' ? '326px' : season === 'autumn' ? '406px' : season === 'summer' ? '376px' : '300px')};
+  height: ${({ season }) => (season === 'autumn' ? '90px' : season === 'summer' ? '76px' : '68px')};
+  pointer-events: none;
+  display: block;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      ellipse at 66% 45%,
+      color-mix(in srgb, ${({ season }) => seasonTheme[season].accent} 22%, rgba(66, 54, 42, 0.28)),
+      rgba(88, 72, 48, 0.1) 42%,
+      transparent 72%
+    );
+  filter: blur(18px);
+  mix-blend-mode: multiply;
+  opacity: ${({ season }) => (season === 'winter' ? 0.12 : season === 'spring' ? 0.13 : season === 'summer' ? 0.16 : 0.18)};
+  transform: rotate(${({ season }) => (season === 'summer' ? '-6deg' : season === 'autumn' ? '-3deg' : '2deg')});
+  transform-origin: center;
+
+  @media (max-width: 1180px) {
+    right: 0;
+    top: ${({ season }) => (season === 'summer' ? '104px' : season === 'autumn' ? '178px' : '116px')};
+    width: ${({ season }) => (season === 'summer' ? '280px' : season === 'autumn' ? '318px' : '238px')};
+    opacity: ${({ season }) => (season === 'autumn' ? 0.12 : 0.1)};
+  }
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+`
+
 const PageSubBranch = styled.span<{ season: Season }>`
   position: absolute;
-  z-index: 1;
-  left: 232px;
-  top: -8px;
-  width: 110px;
-  aspect-ratio: ${({ season }) => (season === 'spring' ? '103 / 93' : season === 'summer' ? '109 / 104' : season === 'autumn' ? '95 / 89' : '97 / 83')};
+  z-index: 0;
+  left: ${({ season }) => (season === 'summer' ? '236px' : '220px')};
+  top: ${({ season }) => (season === 'summer' ? '22px' : '4px')};
+  width: ${({ season }) => (season === 'spring' ? '118px' : season === 'summer' ? '74px' : season === 'autumn' ? '86px' : '112px')};
+  aspect-ratio: ${({ season }) => (season === 'spring' ? '620 / 387' : season === 'summer' ? '520 / 526' : season === 'autumn' ? '540 / 529' : '620 / 419')};
   pointer-events: none;
   display: block;
   background-image: url(${({ season }) => seasonDecor[season].sub});
@@ -788,14 +868,14 @@ const PageSubBranch = styled.span<{ season: Season }>`
   background-position: center;
   background-size: contain;
   backface-visibility: hidden;
-  opacity: ${({ season }) => (season === 'winter' ? 0.52 : 0.62)};
-  transform: rotate(-6deg) scaleX(-1);
+  opacity: ${({ season }) => (season === 'winter' ? 0.32 : season === 'summer' ? 0.38 : 0.3)};
+  transform: rotate(${({ season }) => (season === 'summer' ? '-8deg' : '-6deg')}) scaleX(-1);
   transform-origin: center;
 
   @media (max-width: 1180px) {
-    left: 202px;
-    width: 96px;
-    opacity: 0.5;
+    left: 192px;
+    width: ${({ season }) => (season === 'summer' ? '64px' : '86px')};
+    opacity: 0.26;
   }
 
   @media (max-width: 900px) {
@@ -806,10 +886,10 @@ const PageSubBranch = styled.span<{ season: Season }>`
 const PageMascot = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 4;
-  right: 24px;
-  top: 76px;
-  width: ${({ season }) => (season === 'winter' ? '52px' : season === 'summer' ? '48px' : season === 'autumn' ? '46px' : '44px')};
-  aspect-ratio: ${({ season }) => (season === 'winter' ? '49 / 73' : season === 'summer' ? '52 / 49' : season === 'autumn' ? '81 / 91' : '46 / 43')};
+  right: ${({ season }) => (season === 'spring' ? '30px' : season === 'summer' ? '42px' : season === 'autumn' ? '34px' : '24px')};
+  top: ${({ season }) => (season === 'spring' ? '94px' : season === 'summer' ? '106px' : season === 'autumn' ? '100px' : '92px')};
+  width: ${({ season }) => (season === 'winter' ? '58px' : season === 'summer' ? '60px' : season === 'autumn' ? '50px' : '88px')};
+  aspect-ratio: ${({ season }) => (season === 'winter' ? '280 / 320' : season === 'summer' ? '156 / 147' : season === 'autumn' ? '99 / 108' : '360 / 239')};
   pointer-events: none;
   display: block;
   background-image: url(${({ season }) => seasonDecor[season].mascot});
@@ -818,13 +898,13 @@ const PageMascot = styled.span<{ season: Season }>`
   background-size: contain;
   backface-visibility: hidden;
   opacity: 0.95;
-  transform: rotate(${({ season }) => (season === 'summer' ? '-8deg' : season === 'autumn' ? '6deg' : '-4deg')});
+  transform: rotate(${({ season }) => (season === 'summer' ? '-10deg' : season === 'autumn' ? '-9deg' : season === 'spring' ? '3deg' : '-4deg')});
 
   @media (max-width: 1180px) {
-    right: 14px;
-    top: 64px;
-    width: ${({ season }) => (season === 'winter' ? '46px' : '40px')};
-    opacity: 0.9;
+    right: ${({ season }) => (season === 'spring' ? '22px' : season === 'summer' ? '32px' : season === 'autumn' ? '24px' : '18px')};
+    top: ${({ season }) => (season === 'spring' ? '82px' : season === 'summer' ? '84px' : season === 'autumn' ? '80px' : '76px')};
+    width: ${({ season }) => (season === 'spring' ? '70px' : season === 'summer' ? '52px' : season === 'winter' ? '46px' : '42px')};
+    opacity: 0.82;
   }
 
   @media (max-width: 760px) {
@@ -835,10 +915,10 @@ const PageMascot = styled.span<{ season: Season }>`
 const PageFloater = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 3;
-  left: clamp(420px, 36vw, 520px);
-  top: 2px;
-  width: ${({ season }) => (season === 'winter' ? '30px' : '32px')};
-  height: ${({ season }) => (season === 'winter' ? '30px' : '32px')};
+  left: ${({ season }) => (season === 'spring' ? 'clamp(390px, 34vw, 520px)' : 'clamp(420px, 36vw, 520px)')};
+  top: ${({ season }) => (season === 'spring' ? '8px' : season === 'summer' ? '116px' : '12px')};
+  width: ${({ season }) => (season === 'spring' ? '104px' : season === 'summer' ? '42px' : season === 'autumn' ? '42px' : '40px')};
+  aspect-ratio: ${({ season }) => (season === 'spring' ? '700 / 470' : season === 'summer' ? '120 / 126' : season === 'autumn' ? '260 / 247' : '260 / 228')};
   pointer-events: none;
   display: block;
   background-image: url(${({ season }) => seasonDecor[season].floater});
@@ -846,12 +926,12 @@ const PageFloater = styled.span<{ season: Season }>`
   background-position: center;
   background-size: contain;
   backface-visibility: hidden;
-  opacity: ${({ season }) => (season === 'winter' ? 0.74 : 0.82)};
-  transform: rotate(${({ season }) => (season === 'winter' ? '12deg' : '18deg')});
+  opacity: ${({ season }) => (season === 'spring' ? 0.46 : season === 'summer' ? 0.72 : season === 'winter' ? 0.74 : 0.82)};
+  transform: rotate(${({ season }) => (season === 'spring' ? '-6deg' : season === 'summer' ? '-8deg' : season === 'winter' ? '12deg' : '18deg')});
 
   @media (max-width: 1280px) {
     left: clamp(360px, 34vw, 460px);
-    width: ${({ season }) => (season === 'winter' ? '28px' : '30px')};
+    width: ${({ season }) => (season === 'spring' ? '88px' : season === 'winter' ? '34px' : '36px')};
     opacity: 0.7;
   }
 
@@ -1222,10 +1302,10 @@ const CalendarFrame = styled.div`
 const CalendarFootGrass = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 2;
-  left: 14px;
-  bottom: -5px;
-  width: ${({ season }) => (season === 'spring' ? '108px' : season === 'summer' ? '88px' : season === 'autumn' ? '72px' : '70px')};
-  aspect-ratio: ${({ season }) => (season === 'spring' ? '75 / 16' : season === 'summer' ? '56 / 14' : season === 'autumn' ? '68 / 28' : '67 / 27')};
+  left: ${({ season }) => (season === 'autumn' || season === 'winter' ? '18px' : '10px')};
+  bottom: ${({ season }) => (season === 'spring' ? '8px' : season === 'summer' ? '9px' : season === 'autumn' ? '10px' : '8px')};
+  width: ${({ season }) => (season === 'spring' ? '118px' : season === 'summer' ? '116px' : season === 'autumn' ? '88px' : '72px')};
+  aspect-ratio: ${({ season }) => (season === 'spring' ? '900 / 285' : season === 'summer' ? '900 / 171' : season === 'autumn' ? '204 / 84' : '360 / 253')};
   pointer-events: none;
   display: block;
   background-image: url(${({ season }) => seasonDecor[season].ground});
@@ -1233,16 +1313,31 @@ const CalendarFootGrass = styled.span<{ season: Season }>`
   background-position: left bottom;
   background-size: contain;
   backface-visibility: hidden;
-  opacity: ${({ season }) => (season === 'spring' ? 0.48 : season === 'autumn' ? 0.4 : 0.36)};
-  mix-blend-mode: multiply;
+  opacity: ${({ season }) => (season === 'spring' ? 0.34 : season === 'summer' ? 0.32 : season === 'autumn' ? 0.28 : 0.3)};
 
   @media (max-width: 900px) {
-    width: ${({ season }) => (season === 'spring' ? '92px' : '68px')};
-    opacity: 0.3;
+    bottom: 7px;
+    width: ${({ season }) => (season === 'spring' ? '94px' : season === 'summer' ? '92px' : season === 'autumn' ? '70px' : '62px')};
+    opacity: 0.24;
   }
 
   @media (max-width: 560px) {
     display: none;
+  }
+`
+
+const CalendarFootGrassAlt = styled(CalendarFootGrass)<{ season: Season }>`
+  left: auto;
+  right: 22px;
+  bottom: ${({ season }) => (season === 'spring' ? '8px' : '9px')};
+  width: ${({ season }) => (season === 'spring' ? '106px' : season === 'summer' ? '118px' : '0')};
+  display: ${({ season }) => (season === 'spring' || season === 'summer' ? 'block' : 'none')};
+  transform: scaleX(-1);
+  opacity: ${({ season }) => (season === 'spring' ? 0.28 : 0.26)};
+
+  @media (max-width: 900px) {
+    right: 12px;
+    width: ${({ season }) => (season === 'spring' ? '78px' : '86px')};
   }
 `
 
@@ -1595,11 +1690,11 @@ const CellGardenScene = styled.div<{ season: Season; day: CalendarDay }>`
 
   .cell-decor {
     position: absolute;
-    right: 7px;
-    bottom: 15px;
+    right: 8px;
+    bottom: 8px;
     z-index: 1;
-    width: 28px;
-    height: 22px;
+    width: 22px;
+    height: 17px;
     border-radius: 50%;
     background: ${({ season }) =>
       season === 'spring'
@@ -1621,18 +1716,18 @@ const CellGardenScene = styled.div<{ season: Season; day: CalendarDay }>`
           radial-gradient(circle at 30% 44%, rgba(255,255,255,.88) 0 4px, transparent 5px),
           radial-gradient(circle at 62% 58%, rgba(213,231,241,.78) 0 4px, transparent 5px),
           radial-gradient(circle at 78% 32%, rgba(255,255,255,.72) 0 3px, transparent 4px)`};
-    opacity: ${({ day }) => (day.isSelected ? 0.72 : 0.48)};
+    opacity: ${({ day }) => (day.isSelected ? 0.5 : 0.32)};
     mix-blend-mode: multiply;
   }
 
   .cell-decor-alt {
     right: auto;
-    left: 10px;
-    bottom: 35px;
-    width: 22px;
-    height: 19px;
-    opacity: ${({ day }) => (day.isSelected ? 0.56 : 0.34)};
-    transform: rotate(-10deg) scale(0.82);
+    left: 9px;
+    bottom: 28px;
+    width: 18px;
+    height: 15px;
+    opacity: ${({ day }) => (day.isSelected ? 0.4 : 0.24)};
+    transform: rotate(-10deg) scale(0.78);
   }
 
   .water-drop {
@@ -2198,6 +2293,7 @@ const AddMore = styled.div`
 
 const TipCard = styled(RailCard)<{ season: Season }>`
   position: relative;
+  overflow: visible;
   min-height: 210px;
   background:
     linear-gradient(180deg, ${({ season }) => seasonTheme[season].railTint}, rgba(255, 255, 255, 0.68)),
@@ -2214,10 +2310,10 @@ const TipCard = styled(RailCard)<{ season: Season }>`
 const TipRibbon = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 1;
-  top: -14px;
-  right: 12px;
-  width: ${({ season }) => (season === 'spring' ? '58px' : '70px')};
-  height: ${({ season }) => (season === 'spring' ? '18px' : '24px')};
+  top: ${({ season }) => (season === 'winter' ? '-18px' : season === 'autumn' ? '-16px' : season === 'summer' ? '-14px' : '-18px')};
+  right: ${({ season }) => (season === 'autumn' ? '14px' : '12px')};
+  width: ${({ season }) => (season === 'spring' ? '64px' : season === 'summer' ? '56px' : season === 'autumn' ? '56px' : '48px')};
+  aspect-ratio: ${({ season }) => (season === 'spring' ? '314 / 215' : season === 'summer' ? '309 / 264' : season === 'autumn' ? '390 / 372' : '230 / 226')};
   pointer-events: none;
   display: block;
   background-image: url(${({ season }) => seasonDecor[season].ribbon});
@@ -2225,8 +2321,8 @@ const TipRibbon = styled.span<{ season: Season }>`
   background-position: right top;
   background-size: contain;
   backface-visibility: hidden;
-  opacity: 0.92;
-  transform: rotate(${({ season }) => (season === 'spring' ? '-10deg' : '-6deg')});
+  opacity: ${({ season }) => (season === 'winter' ? 0.74 : season === 'summer' ? 0.82 : 0.9)};
+  transform: rotate(${({ season }) => (season === 'spring' ? '-8deg' : season === 'summer' ? '8deg' : season === 'autumn' ? '10deg' : '-8deg')});
 `
 
 const TipGarden = styled.div`
