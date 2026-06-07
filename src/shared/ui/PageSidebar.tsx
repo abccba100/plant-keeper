@@ -16,11 +16,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { icon: 'scan', label: '식물 판별', path: '/register' },
-  { icon: 'search', label: '식물 상태 분석', path: '/analyze' },
-  { icon: 'users', label: '내 식물', path: '/my-plants' },
-  { icon: 'calendar', label: '관리 캘린더', path: '/' },
-  { icon: 'list', label: '일정 상세 보기', path: '/schedule' },
+  { icon: 'scan',     label: '식물 판별',      path: '/register'  },
+  { icon: 'clock',   label: '기본 관리 정보',   path: '/care-info' },
+  { icon: 'search',  label: '식물 상태 분석',   path: '/analyze'   },
+  { icon: 'calendar',label: '관리 캘린더',      path: '/'          },
 ]
 
 interface Props {

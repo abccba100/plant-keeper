@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, type CSSProperties, type FormEvent } from 'react'
+import { memo, useCallback, useMemo, useState, type CSSProperties, type FormEvent } from 'react'
 import styled from '@emotion/styled'
 import type { DayCellContentArg } from '@fullcalendar/core'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -19,22 +19,10 @@ import {
 import { plants, type Plant, type PlantKind } from '../../entities/plant/model/plant'
 import { useCalendarStore } from '../../features/calendar/model/useCalendarStore'
 import { radii, seasonTheme, shadows } from '../../shared/design-system/tokens'
+import { PageSidebar } from '../../shared/ui/PageSidebar'
+import '../../shared/styles/shell.css'
 import { CanopyAtmosphere } from './atmosphere/CanopyAtmosphere'
 import { seasonDecor } from './decor/seasonDecorRegistry'
-
-function navigate(path: string) {
-  window.history.pushState({}, '', path)
-  window.dispatchEvent(new PopStateEvent('popstate'))
-}
-
-const navItems = [
-  { icon: '↥', label: '식물 이미지 업로드', path: '/register' },
-  { icon: '◎', label: 'AI 식물 인식', path: '/register' },
-  { icon: '◷', label: '기본 관리 정보', path: '/care-info' },
-  { icon: '✎', label: '식물 상태 입력', path: '/analyze' },
-  { icon: '⌕', label: '상태 진단 결과', path: '/analyze' },
-  { icon: '⌘', label: '내 식물 등록', path: '/register' },
-]
 
 const taskTone: Record<CalendarTask['type'], { icon: string; label: string }> = {
   watering: { icon: '◌', label: '물주기' },
@@ -117,7 +105,7 @@ export function CalendarExperience() {
       <PageSubBranch season={season} data-calendar-decor="page-sub" aria-hidden="true" />
       <PageMascot season={season} data-calendar-decor="page-mascot" aria-hidden="true" />
       <PageFloater season={season} data-calendar-decor="page-floater" aria-hidden="true" />
-      <MemoizedSidebar />
+      <PageSidebar season={season} activePath="/" />
       <Workspace>
         <CalendarMain season={season} days={days} />
         <MemoizedRightRail season={season} />
@@ -127,71 +115,30 @@ export function CalendarExperience() {
   )
 }
 
-function Sidebar() {
-  return (
-    <SidebarFrame>
-      <Brand>
-        <span className="brand-leaf" />
-        <strong>Plant Keeper</strong>
-        <small>나의 식물 관리 다이어리</small>
-      </Brand>
-      <Nav>
-        {navItems.map((item) => (
-          <NavItem key={item.label} onClick={() => navigate(item.path)} style={{ cursor: 'pointer' }}>
-            <NavIcon aria-hidden="true">{item.icon}</NavIcon>
-            {item.label}
-          </NavItem>
-        ))}
-        <NavItem active>
-          <NavIcon aria-hidden="true" active>
-            ▣
-          </NavIcon>
-          관리 캘린더
-        </NavItem>
-        <NavItem>
-          <NavIcon aria-hidden="true">□</NavIcon>
-          일정 상세 보기
-        </NavItem>
-      </Nav>
-      <MyPlantCard>
-        <h2>
-          내 식물 <span>＋</span>
-        </h2>
-        {plants.map((plant) => (
-          <PlantLine key={plant.name} style={{ '--tone': plant.tone } as CSSProperties}>
-            <PlantAvatar plant={plant} />
-            <span>{plant.name}</span>
-            <i />
-          </PlantLine>
-        ))}
-      </MyPlantCard>
-      <Settings>설정</Settings>
-    </SidebarFrame>
-  )
-}
 
-function CalendarMain({ season, days }: { season: Season; days: CalendarDay[] }) {
+const CalendarMain = memo(function CalendarMain({ season, days }: { season: Season; days: CalendarDay[] }) {
   const setSeason = useCalendarStore((state) => state.setSeason)
   const selectDate = useCalendarStore((state) => state.selectDate)
   const calendarConfig = fullCalendarSeasonConfig[season]
 
-  function renderDayCell(arg: DayCellContentArg) {
-    const day = getFullCalendarDay(season, days, arg.date)
+  // Stable callbacks so FullCalendar doesn't remount its cell renderers on every
+  // parent re-render (e.g. DayDetail open/close, selectedDate change, etc.)
+  const renderDayCell = useCallback(
+    (arg: DayCellContentArg) => {
+      const day = getFullCalendarDay(season, days, arg.date)
+      if (!day) return null
+      return <MemoizedCalendarCell season={season} day={day} onSelectDate={selectDate} />
+    },
+    [days, season, selectDate],
+  )
 
-    if (!day) {
-      return null
-    }
-
-    return <MemoizedCalendarCell season={season} day={day} onSelectDate={selectDate} />
-  }
-
-  function handleDateClick(arg: DateClickArg) {
-    const day = getFullCalendarDay(season, days, arg.date)
-
-    if (day?.inMonth) {
-      selectDate(day.date)
-    }
-  }
+  const handleDateClick = useCallback(
+    (arg: DateClickArg) => {
+      const day = getFullCalendarDay(season, days, arg.date)
+      if (day?.inMonth) selectDate(day.date)
+    },
+    [days, season, selectDate],
+  )
 
   return (
     <CalendarArea>
@@ -268,7 +215,7 @@ function CalendarMain({ season, days }: { season: Season; days: CalendarDay[] })
       </CalendarFrame>
     </CalendarArea>
   )
-}
+})
 
 function CalendarCell({ season, day, onSelectDate }: { season: Season; day: CalendarDay; onSelectDate: (date: number) => void }) {
   return (
@@ -676,7 +623,6 @@ function PlantAvatar({ plant }: { plant: Plant }) {
   )
 }
 
-const MemoizedSidebar = memo(Sidebar)
 const MemoizedRightRail = memo(RightRail)
 const MemoizedCalendarCell = memo(CalendarCell, areCalendarCellPropsEqual)
 
@@ -722,9 +668,21 @@ function areTasksEqual(previous: CalendarTask[], next: CalendarTask[]) {
   return true
 }
 
+// Derived darker tone used by the shared PageSidebar (.brand strong)
+const accentDeep: Record<Season, string> = {
+  spring: '#46703f',
+  summer: '#4f7236',
+  autumn: '#95591f',
+  winter: '#4f7693',
+}
+
 const Shell = styled.div<{ season: Season }>`
   --accent: ${({ season }) => seasonTheme[season].accent};
+  /* --accent-deep: used by shared PageSidebar */
+  --accent-deep: ${({ season }) => accentDeep[season]};
   --accent-soft: ${({ season }) => seasonTheme[season].accentSoft};
+  /* --ink-soft: used by shared PageSidebar (.brand small, .settings) */
+  --ink-soft: #495149;
   --surface: ${({ season }) => seasonTheme[season].surface};
   --line: ${({ season }) => seasonTheme[season].line};
   --muted-line: ${({ season }) => seasonTheme[season].mutedLine};
@@ -940,134 +898,6 @@ const PageFloater = styled.span<{ season: Season }>`
   }
 `
 
-
-const SidebarFrame = styled.aside`
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding: 30px 13px;
-  border-right: 1px solid var(--control-line);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.48)),
-    var(--control-surface);
-  box-shadow: 18px 0 42px rgba(63, 58, 46, 0.055);
-
-  @media (max-width: 900px) {
-    position: relative;
-    height: auto;
-    padding: 22px 16px 14px;
-    border-right: 0;
-    border-bottom: 1px solid var(--control-line);
-  }
-`
-
-const Brand = styled.div`
-  position: relative;
-  padding: 0 12px 24px;
-  border-bottom: 1px solid rgba(82, 88, 68, 0.12);
-
-  .brand-leaf {
-    display: block;
-    width: 22px;
-    height: 24px;
-    margin-bottom: 8px;
-    background:
-      radial-gradient(ellipse at 34% 40%, #366c3f 0 29%, transparent 30%),
-      radial-gradient(ellipse at 68% 30%, #6a9b62 0 28%, transparent 29%);
-  }
-
-  strong {
-    display: block;
-    color: var(--accent);
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 25px;
-    line-height: 1.05;
-    white-space: nowrap;
-  }
-
-  small {
-    display: block;
-    margin-top: 9px;
-    color: #313931;
-    font-size: 13px;
-  }
-`
-
-const Nav = styled.nav`
-  display: grid;
-  gap: 6px;
-  margin-top: 20px;
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-`
-
-const NavItem = styled.button<{ active?: boolean }>`
-  display: grid;
-  grid-template-columns: 20px 1fr;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid ${({ active }) => (active ? 'color-mix(in srgb, var(--accent) 38%, transparent)' : 'transparent')};
-  border-radius: ${radii.control};
-  color: ${({ active }) => (active ? '#ffffff' : '#151a16')};
-  background: ${({ active }) => (active ? 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 92%, #ffffff 8%), var(--accent))' : 'transparent')};
-  box-shadow: ${({ active }) => (active ? shadows.soft : 'none')};
-  font-size: 14px;
-  text-align: left;
-  cursor: default;
-`
-
-const NavIcon = styled.span<{ active?: boolean }>`
-  display: grid;
-  place-items: center;
-  width: 17px;
-  height: 17px;
-  color: currentColor;
-  font-size: 18px;
-  line-height: 1;
-  opacity: ${({ active }) => (active ? 0.95 : 0.78)};
-`
-
-const MyPlantCard = styled.section`
-  margin-top: 32px;
-  padding: 16px 14px;
-  border: 1px solid var(--control-line);
-  border-radius: ${radii.panel};
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.42)),
-    var(--control-surface);
-  box-shadow: 0 12px 28px rgba(59, 54, 44, 0.045);
-
-  h2 {
-    display: flex;
-    justify-content: space-between;
-    margin: 0 0 14px;
-    font-size: 15px;
-  }
-
-  @media (max-width: 900px) {
-    display: none;
-  }
-`
-
-const Settings = styled.div`
-  margin-top: auto;
-  padding: 24px 12px 0;
-  border-top: 1px solid var(--control-line);
-  color: #1d241f;
-  font-size: 14px;
-
-  @media (max-width: 900px) {
-    display: none;
-  }
-`
 
 const Workspace = styled.main`
   position: relative;
