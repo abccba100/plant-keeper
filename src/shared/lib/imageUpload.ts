@@ -1,0 +1,15 @@
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024
+
+export function getImageUploadError(file: File) {
+  if (!file.type.startsWith('image/')) return '이미지 파일만 업로드할 수 있어요.'
+  if (file.size > MAX_IMAGE_SIZE) return '5MB 이하 이미지만 업로드해 주세요.'
+}
+
+export function replaceObjectUrl(previousUrl: string | undefined, file: File) {
+  if (previousUrl) URL.revokeObjectURL(previousUrl)
+  return URL.createObjectURL(file)
+}
+
+export function revokeObjectUrl(url: string | undefined) {
+  if (url) URL.revokeObjectURL(url)
+}

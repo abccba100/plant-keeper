@@ -122,18 +122,21 @@ function leaf(L: number, W: number, lean: number, fill: string, key: string, mid
   )
 }
 
-/* ---- Monstera ---- */
-function Monstera({ season }: { season: Season }) {
-  const g1 = season === 'winter' ? '#5f8268' : '#3f7a44'
-  const g2 = season === 'winter' ? '#6f917a' : '#4f8d52'
-  const g3 = season === 'winter' ? '#789a83' : '#62a05f'
-  const MLeaf = ({ s, rot, fill }: { s: number; rot: number; fill: string }) => (
+function MLeaf({ s, rot, fill }: { s: number; rot: number; fill: string }) {
+  return (
     <g transform={`rotate(${rot}) scale(${s})`}>
       <path d="M0,0 C -7,-9 -16,-16 -18,-27 C -19,-33 -16,-30 -13,-31 C -16,-36 -15,-42 -11,-45 C -12,-49 -8,-49 -6,-47 C -4,-52 2,-52 4,-47 C 7,-49 11,-48 10,-44 C 14,-41 14,-35 11,-31 C 15,-31 18,-33 17,-27 C 15,-16 7,-9 0,0 Z" fill={fill} />
       <path d="M0,-4 L0,-44" stroke="rgba(0,0,0,0.13)" strokeWidth="1.1" fill="none" strokeLinecap="round" />
       <path d="M0,-18 L-9,-26 M0,-28 L-7,-36 M0,-18 L9,-26 M0,-28 L7,-36" stroke="rgba(0,0,0,0.1)" strokeWidth="0.8" fill="none" strokeLinecap="round" />
     </g>
   )
+}
+
+/* ---- Monstera ---- */
+function Monstera({ season }: { season: Season }) {
+  const g1 = season === 'winter' ? '#5f8268' : '#3f7a44'
+  const g2 = season === 'winter' ? '#6f917a' : '#4f8d52'
+  const g3 = season === 'winter' ? '#789a83' : '#62a05f'
   return (
     <g>
       <Pot variant="cream" />
@@ -228,8 +231,8 @@ const plantGlyphs: Record<PlantKind, React.ComponentType<{ season: Season }>> = 
 }
 
 export function PlantGlyph({ kind, season }: { kind: PlantKind; season: Season }) {
-  const C = plantGlyphs[kind] ?? Peperomia
-  return <C season={season} />
+  const Glyph = plantGlyphs[kind]
+  return <Glyph season={season} />
 }
 
 function Sprout({ season }: { season: Season }) {
@@ -271,8 +274,8 @@ function Ground({ season, w }: { season: Season; w: number }) {
 
 export function GardenScene({ plants, season }: { plants: { kind: PlantKind }[]; season: Season }) {
   const w = 120
-  const total = Math.min(plants.length, 3)
-  const slots = CELL_SLOTS[total] ?? CELL_SLOTS[1]
+  const total = Math.min(Math.max(plants.length, 1), 3)
+  const slots = CELL_SLOTS[total]
   const shown = plants.slice(0, total)
   return (
     <svg viewBox={`0 0 ${w} 70`} preserveAspectRatio="xMidYEnd meet" aria-hidden="true">

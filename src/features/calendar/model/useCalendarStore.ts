@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import {
+  defaultSelectedDateBySeason,
   getCalendarDateKey,
   seasonOrder,
   type CalendarTaskType,
@@ -34,13 +35,6 @@ type CalendarStore = {
   closeDetail: () => void
 }
 
-const selectedDateBySeason: Record<Season, number> = {
-  spring: 17,
-  summer: 3,
-  autumn: 13,
-  winter: 25,
-}
-
 function getInitialSeason(): Season {
   if (typeof window === 'undefined') {
     return 'spring'
@@ -55,7 +49,7 @@ const initialSeason = getInitialSeason()
 
 export const useCalendarStore = create<CalendarStore>((set) => ({
   season: initialSeason,
-  selectedDate: selectedDateBySeason[initialSeason],
+  selectedDate: defaultSelectedDateBySeason[initialSeason],
   showDetail: false,
   completedTaskIds: {},
   userTasksByDate: {},
@@ -63,7 +57,7 @@ export const useCalendarStore = create<CalendarStore>((set) => ({
   setSeason: (season) =>
     set({
       season,
-      selectedDate: selectedDateBySeason[season],
+      selectedDate: defaultSelectedDateBySeason[season],
       showDetail: false,
     }),
   selectDate: (date) => set({ selectedDate: date, showDetail: true }),

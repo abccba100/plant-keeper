@@ -1,33 +1,16 @@
 import { useState } from 'react'
+import { useCalendarStore } from '../../features/calendar/model/useCalendarStore'
+import { defaultSelectedDateBySeason, type Season } from '../../entities/calendar/model/calendar'
+import type { PlantKind } from '../../entities/plant/model/plant'
+import { navigate } from '../../shared/lib/navigation'
 import { Icon } from '../../shared/ui/Icon'
+import { SCHEDULE_PRESETS } from './schedulePresets'
 
-type IconName = Parameters<typeof Icon>[0]['name']
-
-interface ScheduleTask {
-  id: string
-  type: IconName
-  title: string
-  detail: string
-  when: string
-  on: boolean
-}
-
-const SCHEDULE_PRESETS: Record<string, ScheduleTask[]> = {
-  identify: [
-    { id: 'water', type: 'drop', title: '물주기', detail: '겉흙이 마르면 충분히', when: '7일 간격', on: true },
-    { id: 'mist', type: 'leaf', title: '잎 분무', detail: '습도 유지', when: '주 2회', on: true },
-    { id: 'rotate', type: 'refresh', title: '화분 돌리기', detail: '고른 생장', when: '2주 간격', on: false },
-    { id: 'fertilize', type: 'sprout', title: '영양제', detail: '생장기 보충', when: '월 1회', on: false },
-  ],
-  diagnose: [
-    { id: 'water', type: 'drop', title: '물주기 (조정)', detail: '과습 회복 · 겉흙 마른 뒤', when: '10일 간격', on: true },
-    { id: 'recheck', type: 'search', title: '상태 재확인', detail: '갈변 잎 진행 관찰', when: '2주 후', on: true },
-    { id: 'mist', type: 'leaf', title: '잎 분무', detail: '건조 완화', when: '주 2회', on: true },
-    { id: 'move', type: 'sun', title: '자리 옮기기 확인', detail: '간접광 위치 점검', when: '3일 후', on: false },
-  ],
-}
-
-const START_OPTIONS = ['오늘부터', '내일부터', '이번 주말부터']
+const START_OPTIONS = [
+  { label: '오늘부터', offset: 0 },
+  { label: '내일부터', offset: 1 },
+  { label: '이번 주말부터', offset: 5 },
+]
 
 function CalToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -43,35 +26,85 @@ interface Props {
   open: boolean
   preset?: 'identify' | 'diagnose'
   plantName?: string
+  plantKind?: PlantKind
   title?: string
   onClose?: () => void
   onConfirm?: () => void
+}
+
+interface ModalContentProps {
+  preset: 'identify' | 'diagnose'
+  plantName: string
+  plantKind: PlantKind
+  title: string
+  onClose: () => void
+  onConfirm: () => void
+}
+
+function getScheduleDate(season: Season, baseOffset: number, taskOffset: number) {
+  const maxDate = season === 'spring' ? 30 : 31
+  return Math.min(maxDate, defaultSelectedDateBySeason[season] + baseOffset + taskOffset)
 }
 
 export function CalRegisterModal({
   open,
   preset = 'diagnose',
   plantName = '몬스테라',
+  plantKind = 'monstera',
   title = '관리 일정을 캘린더에 등록할까요?',
   onClose = () => {},
   onConfirm = () => {},
 }: Props) {
-  const initial = (SCHEDULE_PRESETS[preset] ?? SCHEDULE_PRESETS.diagnose).map((t) => ({ ...t }))
-  const [tasks, setTasks] = useState(initial)
-  const [start, setStart] = useState(START_OPTIONS[0])
-  const [done, setDone] = useState(false)
-
   if (!open) return null
 
+  return (
+    <CalRegisterModalContent
+      key={preset}
+      preset={preset}
+      plantName={plantName}
+      plantKind={plantKind}
+      title={title}
+      onClose={onClose}
+      onConfirm={onConfirm}
+    />
+  )
+}
+
+function CalRegisterModalContent({
+  preset,
+  plantName,
+  plantKind,
+  title,
+  onClose,
+  onConfirm,
+}: ModalContentProps) {
+  const season = useCalendarStore((state) => state.season)
+  const addTask = useCalendarStore((state) => state.addTask)
+  const selectDate = useCalendarStore((state) => state.selectDate)
+  const [tasks, setTasks] = useState(() => SCHEDULE_PRESETS[preset].map((t) => ({ ...t })))
+  const [startOffset, setStartOffset] = useState(START_OPTIONS[0].offset)
+  const [done, setDone] = useState(false)
+
   const selected = tasks.filter((t) => t.on)
-  const toggle = (id: string, val: boolean) =>
-    setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, on: val } : t)))
+  const toggle = (id: string, val: boolean) => setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, on: val } : t)))
 
   const confirm = () => {
+    selected.forEach((task) => {
+      addTask({
+        season,
+        date: getScheduleDate(season, startOffset, task.dayOffset),
+        type: task.calendarType,
+        title: `${plantName} ${task.title}`,
+        plantKind,
+        time: task.time,
+      })
+    })
+    selectDate(getScheduleDate(season, startOffset, selected[0].dayOffset))
     setDone(true)
     onConfirm()
   }
 
+  const startLabel = START_OPTIONS.find((option) => option.offset === startOffset)?.label ?? START_OPTIONS[0].label
   const sub = `AI가 ${plantName}에게 추천한 관리 일정이에요. 등록할 항목만 선택하세요.`
 
   return (
@@ -80,24 +113,21 @@ export function CalRegisterModal({
         {done ? (
           <div className="cal-success">
             <span className="badge-ok"><Icon name="check" /></span>
-            <h2>캘린더에 등록했어요!</h2>
+            <h2>캘린더에 등록되었어요</h2>
             <p>
-              {selected.length}개의 관리 일정이 <b>{start.replace('부터', '')}</b> 추가됐어요.<br />
-              물주기·분무 알림을 캘린더에서 확인할 수 있어요.
+              {selected.length}개의 관리 일정이 <b>{startLabel}</b> 추가되었어요.<br />
+              캘린더에서 물주기와 상태 확인 일정을 볼 수 있어요.
             </p>
             <div className="reg-actions">
-              <button className="btn-ghost" onClick={onClose}><Icon name="x" />닫기</button>
-              <button
-                className="btn-primary"
-                onClick={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')) }}
-              >
+              <button className="btn-ghost" type="button" onClick={onClose}><Icon name="x" />닫기</button>
+              <button className="btn-primary" type="button" onClick={() => navigate('/')}>
                 <Icon name="calendar" />캘린더로 이동
               </button>
             </div>
           </div>
         ) : (
           <>
-            <button className="cal-close" onClick={onClose} aria-label="닫기"><Icon name="x" /></button>
+            <button className="cal-close" type="button" onClick={onClose} aria-label="닫기"><Icon name="x" /></button>
             <div className="cal-head">
               <span className="ic"><Icon name="calendar" /></span>
               <div>
@@ -108,8 +138,8 @@ export function CalRegisterModal({
 
             <div className="cal-startrow">
               <span className="lbl"><Icon name="clock" />시작 시점</span>
-              <select value={start} onChange={(e) => setStart(e.target.value)}>
-                {START_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+              <select value={startOffset} onChange={(e) => setStartOffset(Number(e.target.value))}>
+                {START_OPTIONS.map((option) => <option key={option.label} value={option.offset}>{option.label}</option>)}
               </select>
             </div>
 
@@ -127,10 +157,10 @@ export function CalRegisterModal({
               ))}
             </div>
 
-            <div className="cal-count">선택한 <b>{selected.length}개</b> 일정이 캘린더에 반복 등록됩니다</div>
+            <div className="cal-count">선택한 <b>{selected.length}개</b> 일정을 캘린더에 등록합니다.</div>
             <div className="cal-foot">
-              <button className="btn-ghost" onClick={onClose}>나중에 할게요</button>
-              <button className="btn-primary" onClick={confirm} disabled={selected.length === 0}>
+              <button className="btn-ghost" type="button" onClick={onClose}>나중에 할게요</button>
+              <button className="btn-primary" type="button" onClick={confirm} disabled={selected.length === 0}>
                 <Icon name="calendar" />캘린더에 등록
               </button>
             </div>
@@ -140,5 +170,3 @@ export function CalRegisterModal({
     </div>
   )
 }
-
-export { SCHEDULE_PRESETS }

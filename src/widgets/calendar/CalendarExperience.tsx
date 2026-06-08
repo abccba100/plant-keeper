@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState, type CSSProperties, type FormEvent } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import styled from '@emotion/styled'
 import type { DayCellContentArg } from '@fullcalendar/core'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -35,18 +35,28 @@ const taskTone: Record<CalendarTask['type'], { icon: string; label: string }> = 
   custom: { icon: '+', label: '직접' },
 }
 
-const taskComposerOptions = [
-  { value: 'watering', label: '물주기', title: '물주기', time: '오전 9:00' },
-  { value: 'mist', label: '잎 분무', title: '잎 분무', time: '오후 4:00' },
-  { value: 'rotate', label: '화분 돌리기', title: '화분 돌리기', time: '오후 1:00' },
-  { value: 'check', label: '상태 확인', title: '상태 확인', time: '오후 6:00' },
-  { value: 'repot', label: '분갈이', title: '분갈이', time: '오전 10:00' },
-  { value: 'fertilize', label: '영양제 주기', title: '영양제 주기', time: '오전 10:30' },
-  { value: 'prune', label: '가지치기', title: '가지치기', time: '오후 2:00' },
-  { value: 'manual', label: '직접 입력', title: '', time: '오전 9:00' },
-] as const
+type PresetTaskType = Exclude<CalendarTaskType, 'custom'>
 
-type TaskComposerValue = (typeof taskComposerOptions)[number]['value']
+interface TaskComposerOption {
+  value: PresetTaskType | 'manual'
+  calendarType: CalendarTaskType
+  label: string
+  title: string
+  time: string
+}
+
+const taskComposerOptions: TaskComposerOption[] = [
+  { value: 'watering', calendarType: 'watering', label: '물주기', title: '물주기', time: '오전 9:00' },
+  { value: 'mist', calendarType: 'mist', label: '잎 분무', title: '잎 분무', time: '오후 4:00' },
+  { value: 'rotate', calendarType: 'rotate', label: '화분 돌리기', title: '화분 돌리기', time: '오후 1:00' },
+  { value: 'check', calendarType: 'check', label: '상태 확인', title: '상태 확인', time: '오후 6:00' },
+  { value: 'repot', calendarType: 'repot', label: '분갈이', title: '분갈이', time: '오전 10:00' },
+  { value: 'fertilize', calendarType: 'fertilize', label: '영양제 주기', title: '영양제 주기', time: '오전 10:30' },
+  { value: 'prune', calendarType: 'prune', label: '가지치기', title: '가지치기', time: '오후 2:00' },
+  { value: 'manual', calendarType: 'custom', label: '직접 입력', title: '', time: '오전 9:00' },
+]
+
+type TaskComposerValue = TaskComposerOption['value']
 
 const leafNodes = Array.from({ length: 6 }, (_, index) => index + 1)
 
@@ -56,6 +66,8 @@ const fullCalendarSeasonConfig: Record<Season, { initialDate: string; gridStart:
   autumn: { initialDate: '2024-10-01', gridStart: '2024-09-30' },
   winter: { initialDate: '2024-12-01', gridStart: '2024-11-25' },
 }
+
+const fullCalendarPlugins = [dayGridPlugin, interactionPlugin]
 
 function getCellPlantSlot(total: number, index: number) {
   return (total === 1 ? [50] : total === 2 ? [36, 64] : [27, 52, 73])[index] ?? 50
@@ -119,7 +131,42 @@ export function CalendarExperience() {
 const CalendarMain = memo(function CalendarMain({ season, days }: { season: Season; days: CalendarDay[] }) {
   const setSeason = useCalendarStore((state) => state.setSeason)
   const selectDate = useCalendarStore((state) => state.selectDate)
+  const calendarRef = useRef<FullCalendar>(null)
+  const seasonChangeTimerRef = useRef<number | null>(null)
+  const seasonSettleTimerRef = useRef<number | null>(null)
+  const [pendingSeason, setPendingSeason] = useState<Season | null>(null)
   const calendarConfig = fullCalendarSeasonConfig[season]
+
+  useEffect(() => {
+    calendarRef.current?.getApi().gotoDate(calendarConfig.initialDate)
+  }, [calendarConfig.initialDate])
+
+  useEffect(() => {
+    return () => {
+      if (seasonChangeTimerRef.current) window.clearTimeout(seasonChangeTimerRef.current)
+      if (seasonSettleTimerRef.current) window.clearTimeout(seasonSettleTimerRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (pendingSeason !== season) return
+    if (seasonSettleTimerRef.current) window.clearTimeout(seasonSettleTimerRef.current)
+    seasonSettleTimerRef.current = window.setTimeout(() => setPendingSeason(null), 360)
+  }, [pendingSeason, season])
+
+  const handleSeasonChange = useCallback(
+    (nextSeason: Season) => {
+      if (nextSeason === season) return
+      if (seasonChangeTimerRef.current) window.clearTimeout(seasonChangeTimerRef.current)
+      if (seasonSettleTimerRef.current) window.clearTimeout(seasonSettleTimerRef.current)
+
+      setPendingSeason(nextSeason)
+      seasonChangeTimerRef.current = window.setTimeout(() => {
+        setSeason(nextSeason)
+      }, 80)
+    },
+    [season, setSeason],
+  )
 
   // Stable callbacks so FullCalendar doesn't remount its cell renderers on every
   // parent re-render (e.g. DayDetail open/close, selectedDate change, etc.)
@@ -177,7 +224,7 @@ const CalendarMain = memo(function CalendarMain({ season, days }: { season: Seas
               active={season === seasonKey}
               seasonKey={seasonKey}
               data-season-tab={seasonKey}
-              onClick={() => setSeason(seasonKey)}
+              onClick={() => handleSeasonChange(seasonKey)}
             >
               <span aria-hidden="true" />
               {seasonMeta[seasonKey].label}
@@ -197,8 +244,8 @@ const CalendarMain = memo(function CalendarMain({ season, days }: { season: Seas
         </WeekHeader>
         <CalendarGrid>
           <FullCalendar
-            key={season}
-            plugins={[dayGridPlugin, interactionPlugin]}
+            ref={calendarRef}
+            plugins={fullCalendarPlugins}
             initialView="dayGridMonth"
             initialDate={calendarConfig.initialDate}
             firstDay={1}
@@ -213,6 +260,12 @@ const CalendarMain = memo(function CalendarMain({ season, days }: { season: Seas
           />
         </CalendarGrid>
       </CalendarFrame>
+      {pendingSeason ? (
+        <SeasonChangeOverlay aria-live="polite" aria-label="계절 변경 중">
+          <span />
+          <strong>{seasonMeta[pendingSeason].label} 캘린더를 불러오는 중</strong>
+        </SeasonChangeOverlay>
+      ) : null}
     </CalendarArea>
   )
 })
@@ -409,7 +462,7 @@ function DayDetail({ season, day, onClose }: { season: Season; day: CalendarDay;
   const selectedTaskOption = taskComposerOptions.find((option) => option.value === taskValue) ?? taskComposerOptions[0]
   const isManualTask = taskValue === 'manual'
   const trimmedCustomTaskTitle = customTaskTitle.trim()
-  const canAddTask = isManualTask ? trimmedCustomTaskTitle.length > 0 : true
+  const canAddTask = !isManualTask || trimmedCustomTaskTitle.length > 0
   const memo = savedMemo ?? '새 잎이 많이 올라오고 있어요. 창가 쪽으로 위치를 옮겨줬어요.'
 
   function handleAddTask(event: FormEvent<HTMLFormElement>) {
@@ -422,7 +475,7 @@ function DayDetail({ season, day, onClose }: { season: Season; day: CalendarDay;
     addTask({
       season,
       date: day.date,
-      type: isManualTask ? 'custom' : (taskValue as CalendarTaskType),
+      type: selectedTaskOption.calendarType,
       title: isManualTask ? trimmedCustomTaskTitle : selectedTaskOption.title,
       plantKind: selectedPlantKind,
       time: selectedTaskOption.time,
@@ -919,7 +972,64 @@ const Workspace = styled.main`
 `
 
 const CalendarArea = styled.section`
+  position: relative;
   min-width: 0;
+`
+
+const SeasonChangeOverlay = styled.div`
+  position: absolute;
+  inset: 106px 0 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  border-radius: ${radii.panel};
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.38) 44%, transparent 72%),
+    rgba(245, 243, 238, 0.46);
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+  animation: seasonOverlayIn 140ms ease-out;
+
+  > span {
+    width: 44px;
+    height: 44px;
+    border: 3px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: seasonSpin 780ms linear infinite;
+  }
+
+  strong {
+    position: absolute;
+    top: calc(50% + 38px);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+
+  @media (max-width: 760px) {
+    inset: 154px 0 0;
+
+    strong {
+      font-size: 12px;
+    }
+  }
+
+  @keyframes seasonSpin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes seasonOverlayIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 `
 
 const TopBar = styled.div`

@@ -33,7 +33,7 @@ const paths: Record<IconName, React.ReactNode> = {
   snow: <><path d="M12 2v20M4 7l16 10M20 7L4 17" {...p} /><path d="M12 6l-2-2 2-2 2 2-2 2zM12 18l-2 2 2 2 2-2-2-2z" {...p} /></>,
   plus: <><path d="M12 5v14M5 12h14" {...p} /></>,
   x: <><path d="M6 6l12 12M18 6L6 18" {...p} /></>,
-  edit: <><path d="M14 5l5 5L8 21H3v-5L14 5z" {...p} /><path d="M3 21h18" stroke="currentColor" {...p} /></>,
+  edit: <><path d="M14 5l5 5L8 21H3v-5L14 5z" {...p} /><path d="M3 21h18" {...p} /></>,
   drop: <><path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z" {...p} /></>,
   check: <><path d="M5 12l4.5 4.5L19 7" {...p} /></>,
   refresh: <><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4" {...p} /><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4" {...p} /></>,

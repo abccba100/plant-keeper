@@ -1,6 +1,7 @@
 import type { Season } from './PlantSvg'
 import { PlantAvatar } from './PlantSvg'
 import { Icon } from './Icon'
+import { navigate } from '../lib/navigation'
 
 const MOCK_PLANTS = [
   { name: '몬스테라', tone: '#71986f', kind: 'monstera' as const },
@@ -29,11 +30,6 @@ interface Props {
 
 export function PageSidebar({ season = 'spring', activePath }: Props) {
   const current = activePath ?? window.location.pathname
-
-  function navigate(path: string) {
-    window.history.pushState({}, '', path)
-    window.dispatchEvent(new PopStateEvent('popstate'))
-  }
 
   return (
     <aside className="sidebar">

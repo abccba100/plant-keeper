@@ -96,9 +96,9 @@
 .health-gauge .unit { font-size: 11px; color: var(--ink-soft); margin-top: 3px; }
 .summary-copy h2 { margin: 0 0 4px; font-size: 21px; font-weight: 700; letter-spacing: -0.3px; }
 .summary-copy .grade-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
+.grade-badge.ok { background: rgba(95,142,98,0.16); color: #46703f; }
 .grade-badge.warn { background: rgba(191,123,47,0.16); color: #95591f; }
-.grade-badge.good { background: rgba(95,142,98,0.16); color: #46703f; }
-.grade-badge.bad { background: rgba(200,97,91,0.16); color: #a23f39; }
+.grade-badge.danger { background: rgba(200,97,91,0.16); color: #a23f39; }
 .summary-copy p { margin: 10px 0 0; font-size: 13.5px; line-height: 1.75; color: #3c443b; max-width: 48ch; }
 
 .diag-issues { display: flex; flex-direction: column; gap: 11px; }

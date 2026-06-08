@@ -44,6 +44,13 @@ export const weekdays = ['월', '화', '수', '목', '금', '토', '일']
 
 export const seasonOrder: Season[] = ['spring', 'summer', 'autumn', 'winter']
 
+export const defaultSelectedDateBySeason: Record<Season, number> = {
+  spring: 17,
+  summer: 3,
+  autumn: 13,
+  winter: 25,
+}
+
 export function getCalendarDateKey(season: Season, date: number) {
   return `${season}-${date}`
 }
@@ -98,7 +105,7 @@ export function getCalendarDays(
 ): CalendarDay[] {
   const startIndex = season === 'winter' ? 6 : season === 'autumn' ? 1 : 0
   const daysInMonth = season === 'spring' ? 30 : 31
-  const today = season === 'summer' ? 3 : season === 'spring' ? 17 : season === 'autumn' ? 13 : 25
+  const today = defaultSelectedDateBySeason[season]
 
   return dayNumbersBySeason[season].slice(0, 42).map((date, index) => {
     const inMonth = index >= startIndex && index < startIndex + daysInMonth

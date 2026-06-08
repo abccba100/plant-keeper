@@ -35,7 +35,7 @@ function Ladder({ level, max = 5 }: { level: number; max?: number }) {
   )
 }
 
-function CareHero({ p, fallback }: { p: typeof CARE_PROFILE; fallback?: boolean }) {
+function CareHero({ p }: { p: typeof CARE_PROFILE }) {
   return (
     <div className="reg-card">
       <div className="care-hero">
