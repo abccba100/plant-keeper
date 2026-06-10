@@ -1,0 +1,81 @@
+import styled from '@emotion/styled'
+import { radii, seasonTheme } from '../../styles/design-system/tokens'
+import type { Season } from '../../../store/calendarData'
+import { seasonDecor } from '../decor/seasonDecorRegistry'
+
+export const RightPanel = styled.aside`
+  position: relative;
+  z-index: 2;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding-top: 118px;
+
+  @media (max-width: 1180px) {
+    display: none;
+  }
+`
+
+export const RailCard = styled.section`
+  overflow: hidden;
+  padding: 18px 15px;
+  border: 1px solid var(--control-line);
+  border-radius: ${radii.panel};
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.52)),
+    var(--control-surface);
+  box-shadow:
+    0 14px 32px color-mix(in srgb, var(--accent) 12%, rgba(58, 52, 42, 0.065)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+
+  h2 {
+    margin: 0 0 13px;
+    font-size: 15px;
+  }
+`
+
+export const AddMore = styled.div`
+  margin-top: 6px;
+  text-align: center;
+  font-size: 13px;
+`
+
+export const TipCard = styled(RailCard)<{ season: Season }>`
+  position: relative;
+  overflow: visible;
+  min-height: 210px;
+  background:
+    linear-gradient(180deg, ${({ season }) => seasonTheme[season].railTint}, rgba(255, 255, 255, 0.68)),
+    radial-gradient(ellipse at 70% 88%, color-mix(in srgb, ${({ season }) => seasonTheme[season].accent} 24%, transparent), transparent 42%);
+
+  p {
+    margin: 0;
+    color: #394139;
+    font-size: 13px;
+    line-height: 1.78;
+  }
+`
+
+export const TipRibbon = styled.span<{ season: Season }>`
+  position: absolute;
+  z-index: 1;
+  top: ${({ season }) => (season === 'winter' ? '-18px' : season === 'autumn' ? '-16px' : season === 'summer' ? '-14px' : '-18px')};
+  right: ${({ season }) => (season === 'autumn' ? '14px' : '12px')};
+  width: ${({ season }) => (season === 'spring' ? '64px' : season === 'summer' ? '56px' : season === 'autumn' ? '56px' : '48px')};
+  aspect-ratio: ${({ season }) => (season === 'spring' ? '314 / 215' : season === 'summer' ? '309 / 264' : season === 'autumn' ? '390 / 372' : '230 / 226')};
+  pointer-events: none;
+  display: block;
+  background-image: url(${({ season }) => seasonDecor[season].ribbon});
+  background-repeat: no-repeat;
+  background-position: right top;
+  background-size: contain;
+  backface-visibility: hidden;
+  opacity: ${({ season }) => (season === 'winter' ? 0.74 : season === 'summer' ? 0.82 : 0.9)};
+  transform: rotate(${({ season }) => (season === 'spring' ? '-8deg' : season === 'summer' ? '8deg' : season === 'autumn' ? '10deg' : '-8deg')});
+`
+
+export const TipGarden = styled.div`
+  position: relative;
+  height: 74px;
+  margin: 18px -8px -10px;
+`

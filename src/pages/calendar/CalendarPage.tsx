@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 
 const CalendarExperience = lazy(() =>
-  import('../../widgets/calendar/CalendarExperience').then((module) => ({
+  import('../../components/calendar/CalendarExperience').then((module) => ({
     default: module.CalendarExperience,
   })),
 )
