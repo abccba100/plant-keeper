@@ -12,6 +12,12 @@ export const CalendarFrame = styled.div`
   box-shadow:
     0 18px 44px color-mix(in srgb, var(--accent) 14%, rgba(58, 52, 42, 0.07)),
     inset 0 1px 0 rgba(255, 255, 255, 0.78);
+
+  html[data-theme='night'] & {
+    box-shadow:
+      0 22px 52px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(213, 227, 255, 0.12);
+  }
 `
 
 export const CalendarFootGrass = styled.span<{ season: Season }>`
@@ -74,6 +80,11 @@ export const Weekday = styled.div<{ sunday?: boolean }>`
   background: color-mix(in srgb, var(--surface) 74%, rgba(255, 255, 255, 0.68));
   font-weight: 700;
   font-size: 14px;
+
+  html[data-theme='night'] & {
+    color: ${({ sunday }) => (sunday ? '#ff9b9b' : '#dbe8fb')};
+    background: rgba(18, 30, 51, 0.92);
+  }
 `
 
 export const CalendarGrid = styled.div`
@@ -181,6 +192,19 @@ export const DayCell = styled.div<{ season: Season; day: CalendarDay }>`
       ${({ season }) => seasonTheme[season].cellLight};
   }
 
+  html[data-theme='night'] & {
+    background: ${({ day }) => (day.isSelected ? 'rgba(127, 168, 255, 0.22)' : 'rgba(13, 24, 42, 0.82)')};
+    box-shadow:
+      inset 0 1px 0 rgba(213, 227, 255, 0.08),
+      inset 0 -28px 36px rgba(0, 0, 0, 0.1);
+  }
+
+  html[data-theme='night'] &:hover {
+    background:
+      linear-gradient(135deg, rgba(127, 168, 255, 0.18), rgba(12, 22, 40, 0.9)),
+      rgba(13, 24, 42, 0.88);
+  }
+
   &:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: -3px;
@@ -227,6 +251,11 @@ export const DateText = styled.span<{ day: CalendarDay }>`
   font-size: ${({ day }) => (day.isToday ? '16px' : '17px')};
   font-weight: 700;
 
+  html[data-theme='night'] & {
+    color: ${({ day }) => (day.isToday ? '#07111f' : day.isSunday ? '#ff9b9b' : day.inMonth ? '#e7f0ff' : '#697b95')};
+    background: ${({ day }) => (day.isToday ? '#dbe7ff' : 'transparent')};
+  }
+
   @media (max-width: 760px) {
     top: 9px;
     left: 7px;
@@ -253,6 +282,12 @@ export const TodayBadge = styled.span`
   font-weight: 800;
   line-height: 1;
   pointer-events: none;
+
+  html[data-theme='night'] & {
+    color: #dbe7ff;
+    background: rgba(127, 168, 255, 0.14);
+    border-color: rgba(213, 227, 255, 0.24);
+  }
 
   @media (max-width: 760px) {
     display: none;
@@ -283,6 +318,16 @@ export const TaskChip = styled.span<{ completed: boolean }>`
   line-height: 1;
   white-space: nowrap;
   pointer-events: none;
+
+  html[data-theme='night'] & {
+    color: ${({ completed }) => (completed ? '#dbe7ff' : '#edf6ff')};
+    border-color: rgba(178, 207, 255, 0.18);
+    background: ${({ completed }) =>
+      completed
+        ? 'linear-gradient(180deg, rgba(127, 168, 255, 0.22), rgba(20, 35, 60, 0.82))'
+        : 'rgba(11, 20, 36, 0.72)'};
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  }
 
   span {
     display: grid;

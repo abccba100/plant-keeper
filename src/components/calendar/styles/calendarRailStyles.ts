@@ -28,6 +28,14 @@ export const RailCard = styled.section`
     0 14px 32px color-mix(in srgb, var(--accent) 12%, rgba(58, 52, 42, 0.065)),
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
 
+  html[data-theme='night'] & {
+    background:
+      linear-gradient(180deg, rgba(24, 38, 63, 0.78), rgba(12, 21, 38, 0.72)),
+      var(--control-surface);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
+    color: #edf6ff;
+  }
+
   h2 {
     margin: 0 0 13px;
     font-size: 15px;
@@ -53,6 +61,16 @@ export const TipCard = styled(RailCard)<{ season: Season }>`
     color: #394139;
     font-size: 13px;
     line-height: 1.78;
+  }
+
+  html[data-theme='night'] & {
+    background:
+      linear-gradient(180deg, rgba(24, 38, 63, 0.78), rgba(12, 21, 38, 0.72)),
+      radial-gradient(ellipse at 70% 88%, rgba(127, 168, 255, 0.16), transparent 42%);
+  }
+
+  html[data-theme='night'] & p {
+    color: #d8e5f7;
   }
 `
 

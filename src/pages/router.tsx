@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState, useEffect } from 'react'
 import { CalendarPage } from './calendar/CalendarPage'
+import { useThemeStore } from '../store/themeStore'
 
 // Non-calendar pages are lazy-loaded — they're not needed on the initial `/` route.
 // Each dynamic import creates a separate chunk that's only fetched when navigated to.
@@ -14,6 +15,8 @@ const AnalyzePage = lazy(() =>
 )
 
 function PageFallback() {
+  const isNightMode = useThemeStore((state) => state.isNightMode)
+
   return (
     <div
       style={{
@@ -21,8 +24,8 @@ function PageFallback() {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        background: 'var(--bg, #f5f3ee)',
-        color: '#6b7a6b',
+        background: isNightMode ? '#07111f' : '#f5f3ee',
+        color: isNightMode ? '#9fb2c8' : '#6b7a6b',
         fontSize: 14,
         gap: 8,
       }}

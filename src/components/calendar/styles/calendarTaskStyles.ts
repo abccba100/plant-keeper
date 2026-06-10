@@ -20,6 +20,15 @@ export const DetailPanel = styled.aside<{ season: Season }>`
     ${({ season }) => seasonTheme[season].pageBackground};
   box-shadow: ${shadows.floating};
 
+  html[data-theme='night'] & {
+    background:
+      linear-gradient(180deg, rgba(24, 38, 63, 0.92), rgba(10, 18, 32, 0.9)),
+      #0d1728;
+    border-color: rgba(178, 207, 255, 0.18);
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.38);
+    color: #edf6ff;
+  }
+
   h2 {
     margin: 0 34px 8px 0;
     font-size: 24px;
@@ -40,6 +49,11 @@ export const DetailClose = styled.button`
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
+
+  html[data-theme='night'] & {
+    color: #edf6ff;
+    background: rgba(18, 30, 51, 0.84);
+  }
 `
 
 export const SeasonLine = styled.p<{ season: Season }>`
@@ -63,6 +77,10 @@ export const SeasonLine = styled.p<{ season: Season }>`
     font-size: 12px;
     font-weight: 700;
   }
+
+  html[data-theme='night'] & strong {
+    color: #c9d9f2;
+  }
 `
 
 export const DetailScene = styled.div`
@@ -84,6 +102,13 @@ export const DetailSection = styled.section`
     linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.56)),
     var(--control-surface);
   box-shadow: 0 10px 24px rgba(58, 52, 42, 0.055);
+
+  html[data-theme='night'] & {
+    background:
+      linear-gradient(180deg, rgba(20, 34, 57, 0.82), rgba(11, 20, 36, 0.78)),
+      var(--control-surface);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+  }
 
   & + & {
     margin-top: 12px;
@@ -108,6 +133,12 @@ export const TaskEmpty = styled.p`
   color: #596159;
   background: rgba(255, 255, 255, 0.38);
   font-size: 13px;
+
+  html[data-theme='night'] & {
+    color: #9fb2c8;
+    background: rgba(18, 30, 51, 0.62);
+    border-color: rgba(178, 207, 255, 0.16);
+  }
 `
 
 export const TaskComposer = styled.form`
@@ -142,6 +173,12 @@ export const TaskSelect = styled.select`
     var(--control-surface);
   font-size: 12px;
   line-height: 1;
+
+  html[data-theme='night'] & {
+    color: #edf6ff;
+    background: rgba(18, 30, 51, 0.86);
+    border-color: rgba(178, 207, 255, 0.18);
+  }
 `
 
 export const TaskInput = styled.input`
@@ -157,6 +194,16 @@ export const TaskInput = styled.input`
 
   &::placeholder {
     color: #7a8178;
+  }
+
+  html[data-theme='night'] & {
+    color: #edf6ff;
+    background: rgba(18, 30, 51, 0.86);
+    border-color: rgba(178, 207, 255, 0.18);
+  }
+
+  html[data-theme='night'] &::placeholder {
+    color: #8293aa;
   }
 `
 
@@ -185,6 +232,11 @@ export const AddTaskButton = styled.button`
     box-shadow: none;
     cursor: not-allowed;
   }
+
+  html[data-theme='night'] &:disabled {
+    color: #8293aa;
+    background: rgba(18, 30, 51, 0.64);
+  }
 `
 
 export const TaskItem = styled.div<{ completed: boolean; highlight: boolean }>`
@@ -202,6 +254,14 @@ export const TaskItem = styled.div<{ completed: boolean; highlight: boolean }>`
       : 'rgba(255, 255, 255, 0.42)'};
   box-shadow: ${({ completed }) => (completed ? '0 10px 22px color-mix(in srgb, var(--accent) 13%, transparent)' : 'none')};
   animation: ${({ highlight }) => (highlight ? 'scheduleComplete 720ms ease-out' : 'none')};
+
+  html[data-theme='night'] & {
+    background: ${({ completed }) =>
+      completed
+        ? 'linear-gradient(135deg, rgba(127, 168, 255, 0.2), rgba(18, 30, 51, 0.82))'
+        : 'rgba(16, 28, 48, 0.72)'};
+    border-color: rgba(178, 207, 255, 0.16);
+  }
 `
 
 export const TaskIcon = styled.span`
@@ -214,6 +274,11 @@ export const TaskIcon = styled.span`
   background: color-mix(in srgb, var(--accent) 13%, rgba(255, 255, 255, 0.72));
   font-size: 16px;
   font-weight: 900;
+
+  html[data-theme='night'] & {
+    color: #dbe7ff;
+    background: rgba(127, 168, 255, 0.14);
+  }
 `
 
 export const TaskCopy = styled.span`
@@ -237,6 +302,14 @@ export const TaskCopy = styled.span`
     color: #555d54;
     font-size: 12px;
   }
+
+  html[data-theme='night'] & strong {
+    color: #edf6ff;
+  }
+
+  html[data-theme='night'] & span {
+    color: #9fb2c8;
+  }
 `
 
 export const TaskAction = styled.button<{ completed: boolean }>`
@@ -259,6 +332,12 @@ export const TaskAction = styled.button<{ completed: boolean }>`
   &:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+  }
+
+  html[data-theme='night'] & {
+    color: ${({ completed }) => (completed ? '#07111f' : '#dbe7ff')};
+    background: ${({ completed }) => (completed ? '#dbe7ff' : 'rgba(127, 168, 255, 0.14)')};
+    border-color: rgba(178, 207, 255, 0.22);
   }
 `
 
@@ -305,5 +384,15 @@ export const MemoField = styled.textarea`
 
   &::placeholder {
     color: #727970;
+  }
+
+  html[data-theme='night'] & {
+    color: #edf6ff;
+    background: rgba(18, 30, 51, 0.78);
+    border-color: rgba(178, 207, 255, 0.18);
+  }
+
+  html[data-theme='night'] &::placeholder {
+    color: #8293aa;
   }
 `

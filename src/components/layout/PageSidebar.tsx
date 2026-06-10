@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { PlantAvatar, type PlantKind, type Season } from '../plant/PlantSvg'
 import { Icon, type IconName } from '../common/Icon'
 import { navigate } from '../../api/navigation'
+import { useThemeStore } from '../../store/themeStore'
 
 interface SidebarPlant {
   name: string
@@ -36,6 +37,8 @@ interface Props {
 
 export function PageSidebar({ season = 'spring', activePath }: Props) {
   const current = activePath ?? window.location.pathname
+  const isNightMode = useThemeStore((state) => state.isNightMode)
+  const toggleNightMode = useThemeStore((state) => state.toggleNightMode)
 
   return (
     <aside className="sidebar">
@@ -84,8 +87,23 @@ export function PageSidebar({ season = 'spring', activePath }: Props) {
       </section>
 
       <div className="settings">
-        <Icon name="clock" style={{ width: 15, height: 15 }} />
-        설정
+        <button
+          type="button"
+          className="theme-toggle"
+          aria-pressed={isNightMode}
+          onClick={toggleNightMode}
+        >
+          <span className="theme-toggle-icon">
+            <Icon name={isNightMode ? 'moon' : 'sun'} />
+          </span>
+          <span className="theme-toggle-copy">
+            <span>{isNightMode ? '밤 모드' : '낮 모드'}</span>
+            <small>{isNightMode ? '차분한 밤 정원' : '밝은 정원'}</small>
+          </span>
+          <span className="theme-toggle-track" aria-hidden="true">
+            <i />
+          </span>
+        </button>
       </div>
     </aside>
   )

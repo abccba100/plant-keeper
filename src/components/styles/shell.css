@@ -212,3 +212,191 @@
   color: var(--ink-soft); font-size: 13px;
   display: flex; align-items: center; gap: 9px;
 }
+
+.theme-toggle {
+  width: 100%;
+  min-height: 54px;
+  display: grid;
+  grid-template-columns: 32px 1fr 42px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 9px;
+  border: 1px solid var(--control-line);
+  border-radius: 13px;
+  background: rgba(255,255,255,0.54);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.theme-toggle-icon {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+.theme-toggle-icon svg { width: 17px; height: 17px; }
+.theme-toggle-copy { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.theme-toggle-copy span { font-size: 13px; font-weight: 700; color: var(--ink); }
+.theme-toggle-copy small { font-size: 11px; color: var(--ink-soft); }
+.theme-toggle-track {
+  width: 42px; height: 24px;
+  display: flex; align-items: center;
+  padding: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, rgba(255,255,255,0.62));
+  border: 1px solid var(--control-line);
+}
+.theme-toggle-track i {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(58,52,42,0.18);
+  transition: transform 0.22s ease, background 0.22s ease;
+}
+
+html[data-theme='night'] {
+  color-scheme: dark;
+  background: #07111f;
+}
+
+html[data-theme='night'] body {
+  background: #07111f;
+}
+
+html[data-theme='night'] .shell[data-season] {
+  --ink: #edf6ff;
+  --ink-soft: #9fb2c8;
+  --accent: #7fa8ff;
+  --accent-deep: #d5e3ff;
+  --accent-soft: rgba(127, 168, 255, 0.17);
+  --bloom: #b9c7ff;
+  --bloom-soft: rgba(137, 163, 255, 0.22);
+  --surface: #101a2d;
+  --line: rgba(182, 209, 255, 0.14);
+  --control-surface: linear-gradient(180deg, rgba(25, 38, 63, 0.88), rgba(12, 20, 35, 0.84));
+  --control-line: rgba(178, 207, 255, 0.18);
+  --rail-tint: rgba(18, 30, 51, 0.74);
+  --page-bg:
+    radial-gradient(circle at 82% 6%, rgba(213, 227, 255, 0.42), transparent 9%),
+    radial-gradient(circle at 17% 13%, rgba(127, 168, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 76% 76%, rgba(83, 197, 185, 0.09), transparent 34%),
+    linear-gradient(118deg, #07111f 0%, #0e1829 48%, #050b16 100%);
+  --soil-top: #405069;
+  --soil-bottom: #182133;
+  --soil-rim: #5a6c86;
+  --pot-terra: #765a65;
+  --pot-terra-deep: #493b4a;
+  --pot-cream: #647087;
+  --pot-cream-deep: #3c475c;
+  --canopy-shadow: rgba(2, 7, 18, 0.68);
+}
+
+html[data-theme='night'] .shell::before,
+html[data-theme='night'] .shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+html[data-theme='night'] .shell::before {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255,255,255,0.72) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 34% 10%, rgba(209,225,255,0.58) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 67% 17%, rgba(255,255,255,0.62) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 88% 28%, rgba(199,220,255,0.5) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 56% 70%, rgba(255,255,255,0.38) 0 1px, transparent 1.4px);
+  opacity: 0.58;
+}
+
+html[data-theme='night'] .shell::after {
+  background:
+    radial-gradient(ellipse at 82% 5%, rgba(214, 229, 255, 0.22), transparent 24%),
+    linear-gradient(180deg, rgba(4, 9, 20, 0.18), rgba(3, 7, 15, 0.52));
+}
+
+html[data-theme='night'] .sidebar {
+  background: linear-gradient(180deg, rgba(14, 25, 44, 0.92), rgba(8, 14, 26, 0.88));
+  border-right-color: rgba(188, 214, 255, 0.16);
+  box-shadow: 18px 0 48px rgba(0, 0, 0, 0.22);
+}
+
+html[data-theme='night'] .brand small,
+html[data-theme='night'] .settings,
+html[data-theme='night'] .page-head p,
+html[data-theme='night'] .step-label,
+html[data-theme='night'] .reg-card-head .sub,
+html[data-theme='night'] .dz-sub,
+html[data-theme='night'] .analyze-sub,
+html[data-theme='night'] .species-latin,
+html[data-theme='night'] .care-copy .k,
+html[data-theme='night'] .info-row .k,
+html[data-theme='night'] .success-card p,
+html[data-theme='night'] .success-chip span,
+html[data-theme='night'] .preview-switch-label {
+  color: var(--ink-soft);
+}
+
+html[data-theme='night'] .nav-item,
+html[data-theme='night'] .plant-line,
+html[data-theme='night'] .guide-list li,
+html[data-theme='night'] .care-hero-meta .desc,
+html[data-theme='night'] .care-tile .note,
+html[data-theme='night'] .diff-guide .row .d {
+  color: #d8e5f7;
+}
+
+html[data-theme='night'] .nav-item:hover,
+html[data-theme='night'] .theme-toggle,
+html[data-theme='night'] .my-plants,
+html[data-theme='night'] .reg-card,
+html[data-theme='night'] .guide-card,
+html[data-theme='night'] .info-card,
+html[data-theme='night'] .care-item,
+html[data-theme='night'] .care-tile,
+html[data-theme='night'] .success-chip,
+html[data-theme='night'] .preview-switch {
+  background: linear-gradient(180deg, rgba(24, 38, 63, 0.78), rgba(12, 21, 38, 0.7));
+  border-color: var(--control-line);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2);
+}
+
+html[data-theme='night'] .dropzone,
+html[data-theme='night'] .photo-frame {
+  background:
+    radial-gradient(circle at 52% 24%, rgba(127,168,255,0.16), transparent 42%),
+    linear-gradient(170deg, rgba(17,29,49,0.9), rgba(8,14,27,0.9));
+  border-color: rgba(178, 207, 255, 0.2);
+}
+
+html[data-theme='night'] .step-dot,
+html[data-theme='night'] .btn-ghost,
+html[data-theme='night'] .meta-pill,
+html[data-theme='night'] .hero-stat,
+html[data-theme='night'] .preview-switch {
+  background: rgba(18, 30, 51, 0.78);
+  color: var(--ink);
+}
+
+html[data-theme='night'] .btn-ghost:hover {
+  background: rgba(29, 45, 72, 0.9);
+}
+
+html[data-theme='night'] .analyze-overlay {
+  background: rgba(6, 11, 22, 0.8);
+}
+
+html[data-theme='night'] .theme-toggle[aria-pressed='true'] .theme-toggle-track {
+  background: linear-gradient(135deg, #5f79d8, #203765);
+}
+
+html[data-theme='night'] .theme-toggle[aria-pressed='true'] .theme-toggle-track i {
+  transform: translateX(18px);
+  background: #dbe7ff;
+}
+
+html[data-theme='night'] .theme-toggle-track i {
+  background: #f5cc74;
+}

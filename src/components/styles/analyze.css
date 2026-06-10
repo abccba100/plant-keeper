@@ -194,3 +194,76 @@
 .cal-success h2 { margin: 0; font-size: 19px; font-weight: 700; }
 .cal-success p { margin: 0; font-size: 13.5px; line-height: 1.7; color: var(--ink-soft); }
 .cal-success .reg-actions { margin-top: 6px; }
+
+html[data-theme='night'] .an-input,
+html[data-theme='night'] .chip,
+html[data-theme='night'] .ai-bubble,
+html[data-theme='night'] .opt-chip,
+html[data-theme='night'] .issue-row,
+html[data-theme='night'] .sched-row,
+html[data-theme='night'] .cal-startrow,
+html[data-theme='night'] .cal-item,
+html[data-theme='night'] .cal-close,
+html[data-theme='night'] .cal-startrow select {
+  background: rgba(18, 30, 51, 0.78);
+  border-color: rgba(178, 207, 255, 0.18);
+  color: var(--ink);
+}
+
+html[data-theme='night'] .chip:hover,
+html[data-theme='night'] .opt-chip:hover,
+html[data-theme='night'] .cal-close:hover {
+  background: rgba(29, 45, 72, 0.92);
+}
+
+html[data-theme='night'] .chip.on,
+html[data-theme='night'] .opt-chip.on,
+html[data-theme='night'] .grade-badge.ok,
+html[data-theme='night'] .sev.low {
+  color: #d5e3ff;
+  background: rgba(127, 168, 255, 0.17);
+  border-color: rgba(178, 207, 255, 0.22);
+}
+
+html[data-theme='night'] .summary-copy p,
+html[data-theme='night'] .issue-copy .c,
+html[data-theme='night'] .solution-step .sd,
+html[data-theme='night'] .cal-item .copy .d {
+  color: #9fb2c8;
+}
+
+html[data-theme='night'] .issue-ic,
+html[data-theme='night'] .sched-ic,
+html[data-theme='night'] .cal-item .ic,
+html[data-theme='night'] .cal-head .ic,
+html[data-theme='night'] .ai-avatar {
+  color: #d5e3ff;
+  background: rgba(127, 168, 255, 0.16);
+}
+
+html[data-theme='night'] .grade-badge.warn,
+html[data-theme='night'] .sev.mid {
+  color: #f3c982;
+  background: rgba(216, 159, 76, 0.17);
+}
+
+html[data-theme='night'] .grade-badge.danger,
+html[data-theme='night'] .sev.high {
+  color: #ffaaa5;
+  background: rgba(221, 111, 108, 0.18);
+}
+
+html[data-theme='night'] .cal-overlay {
+  background: rgba(2, 7, 18, 0.68);
+}
+
+html[data-theme='night'] .cal-modal {
+  background:
+    linear-gradient(180deg, rgba(24, 38, 63, 0.96), rgba(10, 18, 32, 0.96)),
+    var(--control-surface);
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.48);
+}
+
+html[data-theme='night'] .switch .thumb {
+  background: #dbe7ff;
+}

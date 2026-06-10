@@ -34,6 +34,52 @@ export const Shell = styled.div<{ season: Season }>`
   color: #151815;
   isolation: isolate;
 
+  html[data-theme='night'] & {
+    --accent: #7fa8ff;
+    --accent-deep: #d5e3ff;
+    --accent-soft: rgba(127, 168, 255, 0.17);
+    --ink-soft: #9fb2c8;
+    --surface: #101a2d;
+    --line: rgba(182, 209, 255, 0.14);
+    --muted-line: rgba(178, 207, 255, 0.1);
+    --control-surface: linear-gradient(180deg, rgba(25, 38, 63, 0.88), rgba(12, 20, 35, 0.84));
+    --control-line: rgba(178, 207, 255, 0.18);
+    --calendar-surface: rgba(13, 23, 40, 0.88);
+    --grid-line: rgba(178, 207, 255, 0.11);
+    --selected-cell: rgba(127, 168, 255, 0.2);
+    background:
+      radial-gradient(circle at 82% 6%, rgba(213, 227, 255, 0.38), transparent 9%),
+      radial-gradient(circle at 17% 13%, rgba(127, 168, 255, 0.16), transparent 28%),
+      radial-gradient(circle at 76% 76%, rgba(83, 197, 185, 0.09), transparent 34%),
+      linear-gradient(118deg, #07111f 0%, #0e1829 48%, #050b16 100%);
+    color: #edf6ff;
+  }
+
+  html[data-theme='night'] &::before,
+  html[data-theme='night'] &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  html[data-theme='night'] &::before {
+    background:
+      radial-gradient(circle at 12% 18%, rgba(255,255,255,0.72) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 31% 9%, rgba(209,225,255,0.58) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 64% 16%, rgba(255,255,255,0.62) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 87% 26%, rgba(199,220,255,0.5) 0 1px, transparent 1.4px),
+      radial-gradient(circle at 54% 70%, rgba(255,255,255,0.38) 0 1px, transparent 1.4px);
+    opacity: 0.58;
+  }
+
+  html[data-theme='night'] &::after {
+    background:
+      radial-gradient(ellipse at 82% 5%, rgba(214, 229, 255, 0.22), transparent 24%),
+      linear-gradient(180deg, rgba(4, 9, 20, 0.18), rgba(3, 7, 15, 0.52));
+  }
+
   @media (max-width: 1180px) {
     grid-template-columns: 190px minmax(0, 1fr);
   }
@@ -355,6 +401,13 @@ export const IconButton = styled.button`
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+
+  html[data-theme='night'] & {
+    color: #edf6ff;
+    box-shadow:
+      0 10px 22px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
 `
 
 export const Toolbar = styled.div`
@@ -397,6 +450,13 @@ export const ArrowButton = styled.button`
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+
+  html[data-theme='night'] & {
+    color: #edf6ff;
+    box-shadow:
+      0 10px 22px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
 `
 
 export const MonthButton = styled.button`
@@ -424,6 +484,13 @@ export const MonthButton = styled.button`
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+
+  html[data-theme='night'] & {
+    color: #edf6ff;
+    box-shadow:
+      0 10px 22px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
 `
 
 export const SoftButton = styled.button`
@@ -445,6 +512,13 @@ export const SoftButton = styled.button`
   &:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+  }
+
+  html[data-theme='night'] & {
+    color: #edf6ff;
+    box-shadow:
+      0 10px 22px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 `
 
@@ -471,6 +545,12 @@ export const SeasonTabs = styled.div`
   @media (max-width: 760px) {
     width: 100%;
     overflow-x: auto;
+  }
+
+  html[data-theme='night'] & {
+    box-shadow:
+      0 10px 22px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 `
 
@@ -507,5 +587,9 @@ export const SeasonTab = styled.button<{ active?: boolean; seasonKey: Season }>`
     border: 1px solid ${({ active }) => (active ? 'rgba(255,255,255,0.62)' : 'rgba(255,255,255,0.38)')};
     border-radius: ${({ seasonKey }) => (seasonKey === 'autumn' ? '55% 8% 60% 10%' : '50%')};
     background: ${({ seasonKey }) => seasonTheme[seasonKey].accent};
+  }
+
+  html[data-theme='night'] & {
+    color: ${({ active }) => (active ? '#ffffff' : '#d8e5f7')};
   }
 `
