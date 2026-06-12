@@ -5,6 +5,7 @@ import FullCalendar from '@fullcalendar/react'
 import {
   getCalendarDays,
   getPlantMoisture,
+  defaultSelectedDateBySeason,
   seasonMeta,
   seasonOrder,
   weekdays,
@@ -13,8 +14,9 @@ import {
   type CalendarTask,
   type Season,
 } from '../../store/calendarData'
-import type { Plant } from '../../store/plantData'
+import type { Plant, PlantKind } from '../../store/plantData'
 import { useCalendarStore } from '../../store/calendarStore'
+import { usePlantStore } from '../../store/plantStore'
 import { PageSidebar } from '../layout/PageSidebar'
 import '../styles/shell.css'
 import {
@@ -35,6 +37,7 @@ import {
   ArrowButton,
   MonthButton,
   SoftButton,
+  SoftSelect,
   ToolbarSpacer,
   SeasonTabs,
   SeasonTab,
@@ -76,7 +79,8 @@ export function CalendarExperience() {
   const completedTaskIds = useCalendarStore((state) => state.completedTaskIds)
   const userTasksByDate = useCalendarStore((state) => state.userTasksByDate)
   const closeDetail = useCalendarStore((state) => state.closeDetail)
-  const days = useMemo(() => getCalendarDays(season, selectedDate, completedTaskIds, userTasksByDate), [completedTaskIds, season, selectedDate, userTasksByDate])
+  const plants = usePlantStore((state) => state.plants)
+  const days = useMemo(() => getCalendarDays(season, selectedDate, completedTaskIds, userTasksByDate, plants), [completedTaskIds, plants, season, selectedDate, userTasksByDate])
   const selectedDay = useMemo(() => days.find((day) => day.inMonth && day.date === selectedDate), [days, selectedDate])
 
   return (
@@ -89,7 +93,7 @@ export function CalendarExperience() {
       <PageFloater season={season} data-calendar-decor="page-floater" aria-hidden="true" />
       <PageSidebar season={season} activePath="/" />
       <Workspace>
-        <CalendarMain season={season} days={days} />
+        <CalendarMain season={season} days={days} plants={plants} />
         <MemoizedRightRail season={season} />
       </Workspace>
       {showDetail && selectedDay ? <DayDetail season={season} day={selectedDay} onClose={closeDetail} /> : null}
@@ -98,14 +102,20 @@ export function CalendarExperience() {
 }
 
 
-const CalendarMain = memo(function CalendarMain({ season, days }: { season: Season; days: CalendarDay[] }) {
+type PlantFilter = PlantKind | 'all'
+type CalendarViewMode = 'calendar' | 'list'
+
+const CalendarMain = memo(function CalendarMain({ season, days, plants }: { season: Season; days: CalendarDay[]; plants: Plant[] }) {
   const setSeason = useCalendarStore((state) => state.setSeason)
   const selectDate = useCalendarStore((state) => state.selectDate)
   const calendarRef = useRef<FullCalendar>(null)
   const seasonChangeTimerRef = useRef<number | null>(null)
   const seasonSettleTimerRef = useRef<number | null>(null)
   const [pendingSeason, setPendingSeason] = useState<Season | null>(null)
+  const [plantFilter, setPlantFilter] = useState<PlantFilter>('all')
+  const [viewMode, setViewMode] = useState<CalendarViewMode>('calendar')
   const calendarConfig = fullCalendarSeasonConfig[season]
+  const visibleDays = useMemo(() => days.map((day) => filterCalendarDay(day, plantFilter)), [days, plantFilter])
 
   useEffect(() => {
     calendarRef.current?.getApi().gotoDate(calendarConfig.initialDate)
@@ -138,15 +148,28 @@ const CalendarMain = memo(function CalendarMain({ season, days }: { season: Seas
     [season, setSeason],
   )
 
+  const jumpSeason = useCallback(
+    (direction: -1 | 1) => {
+      const currentIndex = seasonOrder.indexOf(season)
+      const nextSeason = seasonOrder[(currentIndex + direction + seasonOrder.length) % seasonOrder.length]
+      handleSeasonChange(nextSeason)
+    },
+    [handleSeasonChange, season],
+  )
+
+  const selectToday = useCallback(() => {
+    selectDate(defaultSelectedDateBySeason[season])
+  }, [season, selectDate])
+
   // Stable callbacks so FullCalendar doesn't remount its cell renderers on every
   // parent re-render (e.g. DayDetail open/close, selectedDate change, etc.)
   const renderDayCell = useCallback(
     (arg: DayCellContentArg) => {
-      const day = getFullCalendarDay(season, days, arg.date)
+      const day = getFullCalendarDay(season, visibleDays, arg.date)
       if (!day) return null
       return <MemoizedCalendarCell season={season} day={day} onSelectDate={selectDate} />
     },
-    [days, season, selectDate],
+    [season, selectDate, visibleDays],
   )
 
   const handleDateClick = useCallback(
@@ -162,30 +185,43 @@ const CalendarMain = memo(function CalendarMain({ season, days }: { season: Seas
       <TopBar>
         <h1>관리 캘린더</h1>
         <IconControls aria-label="View controls">
-          <IconButton type="button" aria-label="Calendar view">
+          <IconButton type="button" aria-label="Calendar view" aria-pressed={viewMode === 'calendar'} onClick={() => setViewMode('calendar')}>
             ◴
           </IconButton>
-          <IconButton type="button" aria-label="List view">
+          <IconButton type="button" aria-label="List view" aria-pressed={viewMode === 'list'} onClick={() => setViewMode('list')}>
             ☰
           </IconButton>
         </IconControls>
       </TopBar>
       <Toolbar>
         <MonthControls>
-          <ArrowButton type="button" aria-label="Previous month">
+          <ArrowButton type="button" aria-label="Previous month" onClick={() => jumpSeason(-1)}>
             ‹
           </ArrowButton>
-          <MonthButton type="button">
+          <MonthButton type="button" onClick={selectToday}>
             <strong>{seasonMeta[season].month}</strong>
           </MonthButton>
-          <ArrowButton type="button" aria-label="Next month">
+          <ArrowButton type="button" aria-label="Next month" onClick={() => jumpSeason(1)}>
             ›
           </ArrowButton>
         </MonthControls>
-        <SoftButton type="button">오늘</SoftButton>
+        <SoftButton type="button" onClick={selectToday}>오늘</SoftButton>
         <ToolbarSpacer />
-        <SoftButton type="button">모든 식물⌄</SoftButton>
-        <SoftButton type="button">월간 보기⌄</SoftButton>
+        <SoftSelect
+          aria-label="식물 필터"
+          value={plantFilter}
+          onChange={(event) => setPlantFilter(event.target.value as PlantFilter)}
+        >
+          <option value="all">모든 식물</option>
+          {plants.map((plant) => (
+            <option key={`${plant.kind}-${plant.name}`} value={plant.kind}>
+              {plant.name}
+            </option>
+          ))}
+        </SoftSelect>
+        <SoftButton type="button" onClick={() => setViewMode((mode) => (mode === 'calendar' ? 'list' : 'calendar'))}>
+          {viewMode === 'calendar' ? '월간 보기' : '목록 보기'}
+        </SoftButton>
         <SeasonTabs>
           {seasonOrder.map((seasonKey) => (
             <SeasonTab
@@ -202,34 +238,38 @@ const CalendarMain = memo(function CalendarMain({ season, days }: { season: Seas
           ))}
         </SeasonTabs>
       </Toolbar>
-      <CalendarFrame>
-        <CalendarFootGrass season={season} data-calendar-decor="calendar-foot" aria-hidden="true" />
-        <CalendarFootGrassAlt season={season} data-calendar-decor="calendar-foot-alt" aria-hidden="true" />
-        <WeekHeader>
-          {weekdays.map((weekday, index) => (
-            <Weekday key={weekday} sunday={index === 6}>
-              {weekday}
-            </Weekday>
-          ))}
-        </WeekHeader>
-        <CalendarGrid>
-          <FullCalendar
-            ref={calendarRef}
-            plugins={fullCalendarPlugins}
-            initialView="dayGridMonth"
-            initialDate={calendarConfig.initialDate}
-            firstDay={1}
-            fixedWeekCount
-            showNonCurrentDates
-            dayHeaders={false}
-            headerToolbar={false}
-            height="auto"
-            contentHeight="auto"
-            dayCellContent={renderDayCell}
-            dateClick={handleDateClick}
-          />
-        </CalendarGrid>
-      </CalendarFrame>
+      {viewMode === 'calendar' ? (
+        <CalendarFrame>
+          <CalendarFootGrass season={season} data-calendar-decor="calendar-foot" aria-hidden="true" />
+          <CalendarFootGrassAlt season={season} data-calendar-decor="calendar-foot-alt" aria-hidden="true" />
+          <WeekHeader>
+            {weekdays.map((weekday, index) => (
+              <Weekday key={weekday} sunday={index === 6}>
+                {weekday}
+              </Weekday>
+            ))}
+          </WeekHeader>
+          <CalendarGrid>
+            <FullCalendar
+              ref={calendarRef}
+              plugins={fullCalendarPlugins}
+              initialView="dayGridMonth"
+              initialDate={calendarConfig.initialDate}
+              firstDay={1}
+              fixedWeekCount
+              showNonCurrentDates
+              dayHeaders={false}
+              headerToolbar={false}
+              height="auto"
+              contentHeight="auto"
+              dayCellContent={renderDayCell}
+              dateClick={handleDateClick}
+            />
+          </CalendarGrid>
+        </CalendarFrame>
+      ) : (
+        <CalendarListView days={visibleDays} onSelectDate={selectDate} />
+      )}
       {pendingSeason ? (
         <SeasonChangeOverlay aria-live="polite" aria-label="계절 변경 중">
           <span />
@@ -239,6 +279,68 @@ const CalendarMain = memo(function CalendarMain({ season, days }: { season: Seas
     </CalendarArea>
   )
 })
+
+function filterCalendarDay(day: CalendarDay, plantFilter: PlantFilter): CalendarDay {
+  if (plantFilter === 'all') {
+    return day
+  }
+
+  return {
+    ...day,
+    plants: day.plants.filter((plant) => plant.kind === plantFilter),
+    tasks: day.tasks.filter((task) => task.plant.kind === plantFilter),
+  }
+}
+
+function CalendarListView({ days, onSelectDate }: { days: CalendarDay[]; onSelectDate: (date: number) => void }) {
+  const scheduledDays = days.filter((day) => day.inMonth && day.tasks.length > 0)
+
+  return (
+    <CalendarFrame>
+      <div style={{ display: 'grid', gap: 10, padding: 18, minHeight: 520 }}>
+        {scheduledDays.length > 0 ? (
+          scheduledDays.map((day) => (
+            <button
+              key={`list-${day.date}`}
+              type="button"
+              onClick={() => onSelectDate(day.date)}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '72px 1fr auto',
+                alignItems: 'center',
+                gap: 14,
+                width: '100%',
+                minHeight: 68,
+                padding: '12px 14px',
+                border: '1px solid var(--control-line)',
+                borderRadius: 11,
+                background: 'var(--control-surface)',
+                color: 'inherit',
+                textAlign: 'left',
+                cursor: 'pointer',
+              }}
+            >
+              <strong style={{ color: 'var(--accent-deep)' }}>{day.date}일</strong>
+              <span style={{ display: 'grid', gap: 4 }}>
+                <span style={{ fontWeight: 800 }}>{day.tasks[0].title}</span>
+                <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
+                  {day.tasks[0].time} · {day.tasks[0].plant.name}
+                </span>
+              </span>
+              <span style={{ fontSize: 13, color: 'var(--accent-deep)', fontWeight: 800 }}>
+                {day.tasks.length > 1 ? `+${day.tasks.length - 1}` : '상세'}
+              </span>
+            </button>
+          ))
+        ) : (
+          <div style={{ display: 'grid', placeItems: 'center', minHeight: 360, color: 'var(--ink-soft)', fontWeight: 700 }}>
+            선택한 식물의 일정이 없습니다.
+          </div>
+        )}
+      </div>
+    </CalendarFrame>
+  )
+}
 
 function CalendarCell({ season, day, onSelectDate }: { season: Season; day: CalendarDay; onSelectDate: (date: number) => void }) {
   return (

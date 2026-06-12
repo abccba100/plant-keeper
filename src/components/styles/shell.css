@@ -255,6 +255,134 @@
   transition: transform 0.22s ease, background 0.22s ease;
 }
 
+.btn-ghost,
+.btn-primary {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border-radius: var(--r-control);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-ghost {
+  border: 1px solid var(--control-line);
+  background: rgba(255,255,255,0.56);
+  color: var(--ink);
+}
+
+.btn-ghost:hover { background: #fff; }
+
+.btn-primary {
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  color: #fff;
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.btn-primary:hover { filter: brightness(1.04); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+.plant-add-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(22, 28, 23, 0.28);
+  backdrop-filter: blur(4px);
+}
+
+.plant-add-modal {
+  position: relative;
+  width: min(360px, 100%);
+  display: grid;
+  gap: 16px;
+  padding: 26px;
+  border: 1px solid var(--control-line);
+  border-radius: var(--r-panel);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,255,255,0.68)),
+    var(--control-surface);
+  box-shadow: 0 28px 70px rgba(50, 45, 36, 0.18);
+  color: var(--ink);
+}
+
+.plant-add-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--control-line);
+  border-radius: 9px;
+  background: rgba(255,255,255,0.54);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.plant-add-close svg { width: 15px; height: 15px; }
+
+.plant-add-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--accent-soft);
+}
+
+.plant-add-icon .plant-avatar {
+  width: 36px;
+  height: 36px;
+}
+
+.plant-add-modal h2 {
+  margin: -6px 0 0;
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.plant-add-modal label {
+  display: grid;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.plant-add-modal input {
+  width: 100%;
+  height: 44px;
+  padding: 0 13px;
+  border: 1px solid var(--control-line);
+  border-radius: var(--r-control);
+  background: rgba(255,255,255,0.7);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.plant-add-modal input:focus {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--control-line));
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.plant-add-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 html[data-theme='night'] {
   color-scheme: dark;
   background: #07111f;
@@ -399,4 +527,16 @@ html[data-theme='night'] .theme-toggle[aria-pressed='true'] .theme-toggle-track 
 
 html[data-theme='night'] .theme-toggle-track i {
   background: #f5cc74;
+}
+
+html[data-theme='night'] .plant-add-overlay {
+  background: rgba(2, 7, 18, 0.58);
+}
+
+html[data-theme='night'] .plant-add-modal,
+html[data-theme='night'] .plant-add-close,
+html[data-theme='night'] .plant-add-modal input {
+  background: linear-gradient(180deg, rgba(24, 38, 63, 0.92), rgba(12, 21, 38, 0.88));
+  border-color: var(--control-line);
+  color: var(--ink);
 }

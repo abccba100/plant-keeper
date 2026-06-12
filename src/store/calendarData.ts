@@ -102,18 +102,20 @@ export function getCalendarDays(
   selectedDate: number,
   completedTaskIds: CompletedTaskMap = {},
   userTasksByDate: UserCalendarTaskMap = {},
+  availablePlants: Plant[] = plants,
 ): CalendarDay[] {
   const startIndex = season === 'winter' ? 6 : season === 'autumn' ? 1 : 0
   const daysInMonth = season === 'spring' ? 30 : 31
   const today = defaultSelectedDateBySeason[season]
+  const plantCatalog = availablePlants.length > 0 ? availablePlants : plants
 
   return dayNumbersBySeason[season].slice(0, 42).map((date, index) => {
     const inMonth = index >= startIndex && index < startIndex + daysInMonth
     const density = (inMonth ? ((index + date) % 4) : 0) as CalendarDay['density']
     const plantCount = inMonth ? Math.max(1, Math.min(3, density + 1)) : 1
-    const offset = (index + date) % plants.length
-    const dayPlants = Array.from({ length: plantCount }, (_, plantIndex) => plants[(offset + plantIndex) % plants.length])
-    const tasks = createDayTasks(season, date, index, inMonth, dayPlants, completedTaskIds, userTasksByDate)
+    const offset = (index + date) % plantCatalog.length
+    const dayPlants = Array.from({ length: plantCount }, (_, plantIndex) => plantCatalog[(offset + plantIndex) % plantCatalog.length])
+    const tasks = createDayTasks(season, date, index, inMonth, dayPlants, completedTaskIds, userTasksByDate, plantCatalog)
     const hasPendingWatering = tasks.some((task) => task.type === 'watering' && !task.completed)
 
     return {
@@ -149,6 +151,7 @@ function createDayTasks(
   dayPlants: Plant[],
   completedTaskIds: CompletedTaskMap,
   userTasksByDate: UserCalendarTaskMap,
+  plantCatalog: Plant[],
 ): CalendarTask[] {
   if (!inMonth) {
     return []
@@ -205,7 +208,7 @@ function createDayTasks(
   })
 
   const userTasks = (userTasksByDate[getCalendarDateKey(season, date)] ?? []).map((task) => {
-    const plant = plants.find((candidate) => candidate.kind === task.plantKind) ?? firstPlant
+    const plant = plantCatalog.find((candidate) => candidate.kind === task.plantKind) ?? plants.find((candidate) => candidate.kind === task.plantKind) ?? firstPlant
 
     return {
       id: task.id,

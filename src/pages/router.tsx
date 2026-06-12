@@ -7,9 +7,6 @@ import { useThemeStore } from '../store/themeStore'
 const RegisterPage = lazy(() =>
   import('./register/RegisterPage').then((m) => ({ default: m.RegisterPage }))
 )
-const CareInfoPage = lazy(() =>
-  import('./care-info/CareInfoPage').then((m) => ({ default: m.CareInfoPage }))
-)
 const AnalyzePage = lazy(() =>
   import('./analyze/AnalyzePage').then((m) => ({ default: m.AnalyzePage }))
 )
@@ -51,6 +48,10 @@ function getPath() {
   return window.location.pathname
 }
 
+function isKnownPath(pathname: string) {
+  return pathname === '/' || pathname === '/register' || pathname === '/analyze'
+}
+
 export function Router() {
   const [pathname, setPathname] = useState(getPath)
 
@@ -60,19 +61,21 @@ export function Router() {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  if (pathname === '/register')
+  useEffect(() => {
+    if (isKnownPath(pathname)) return
+
+    window.history.replaceState({}, '', '/')
+  }, [pathname])
+
+  const routePath = isKnownPath(pathname) ? pathname : '/'
+
+  if (routePath === '/register')
     return (
       <Suspense fallback={<PageFallback />}>
         <RegisterPage />
       </Suspense>
     )
-  if (pathname === '/care-info')
-    return (
-      <Suspense fallback={<PageFallback />}>
-        <CareInfoPage />
-      </Suspense>
-    )
-  if (pathname === '/analyze')
+  if (routePath === '/analyze')
     return (
       <Suspense fallback={<PageFallback />}>
         <AnalyzePage />

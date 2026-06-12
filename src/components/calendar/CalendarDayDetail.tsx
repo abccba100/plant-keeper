@@ -1,7 +1,8 @@
 import { useState, type CSSProperties, type FormEvent } from 'react'
 import { getPlantMoisture, seasonMeta, type CalendarDay, type Season } from '../../store/calendarData'
-import { plants, type Plant, type PlantKind } from '../../store/plantData'
+import { plants as defaultPlants, type Plant, type PlantKind } from '../../store/plantData'
 import { useCalendarStore } from '../../store/calendarStore'
+import { usePlantStore } from '../../store/plantStore'
 import {
   AddTaskButton,
   Avatar,
@@ -45,23 +46,28 @@ import {
 } from './calendarConfig'
 
 export function RightRail({ season }: { season: Season }) {
+  const plants = usePlantStore((state) => state.plants)
+  const displayPlants = plants.length > 0 ? plants : defaultPlants
+  const visiblePlants = displayPlants.slice(0, 4)
+  const hiddenPlantCount = Math.max(0, displayPlants.length - visiblePlants.length)
+
   return (
     <RightPanel>
       <RailCard>
         <h2>식물 목록</h2>
-        {plants.map((plant) => (
-          <PlantLine key={plant.name} style={{ '--tone': plant.tone } as CSSProperties}>
+        {visiblePlants.map((plant) => (
+          <PlantLine key={`${plant.kind}-${plant.name}`} style={{ '--tone': plant.tone } as CSSProperties}>
             <PlantAvatar plant={plant} />
             <span>{plant.name}</span>
             <i />
           </PlantLine>
         ))}
-        <AddMore>+2 추가</AddMore>
+        {hiddenPlantCount > 0 ? <AddMore>+{hiddenPlantCount} 추가</AddMore> : null}
       </RailCard>
       <RailCard>
         <h2>이번 달 요약</h2>
-        {plants.map((plant) => (
-          <PlantLine key={`summary-${plant.name}`} style={{ '--tone': plant.tone } as CSSProperties}>
+        {visiblePlants.map((plant) => (
+          <PlantLine key={`summary-${plant.kind}-${plant.name}`} style={{ '--tone': plant.tone } as CSSProperties}>
             <PlantAvatar plant={plant} />
             <span>{plant.name}</span>
             <span>-</span>
@@ -74,8 +80,8 @@ export function RightRail({ season }: { season: Season }) {
         <p>{seasonMeta[season].tip}</p>
         <TipGarden>
           <SoilBand season={season} day={{ inMonth: true, moisture: 'balanced' } as CalendarDay} />
-          <PottedPlant plant={plants[0]} index={0} total={2} growth={2} muted={false} />
-          <PottedPlant plant={plants[2]} index={1} total={2} growth={3} muted={false} />
+          <PottedPlant plant={displayPlants[0]} index={0} total={2} growth={2} muted={false} />
+          <PottedPlant plant={displayPlants[2] ?? displayPlants[0]} index={1} total={2} growth={3} muted={false} />
         </TipGarden>
       </TipCard>
     </RightPanel>
@@ -88,9 +94,11 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
   const savedMemo = useCalendarStore((state) => state.memosByDate[`${season}-${day.date}`])
   const setMemo = useCalendarStore((state) => state.setMemo)
   const lastCompletedTaskId = useCalendarStore((state) => state.lastCompletedTaskId)
+  const plants = usePlantStore((state) => state.plants)
+  const availablePlants = plants.length > 0 ? plants : defaultPlants
   const [taskValue, setTaskValue] = useState<TaskComposerValue>('watering')
   const [customTaskTitle, setCustomTaskTitle] = useState('')
-  const [selectedPlantKind, setSelectedPlantKind] = useState<PlantKind>(day.plants[0]?.kind ?? plants[0].kind)
+  const [selectedPlantKind, setSelectedPlantKind] = useState<PlantKind>(day.plants[0]?.kind ?? availablePlants[0].kind)
   const completedWatering = day.tasks.some((task) => task.type === 'watering' && task.completed)
   const selectedTaskOption = taskComposerOptions.find((option) => option.value === taskValue) ?? taskComposerOptions[0]
   const isManualTask = taskValue === 'manual'
@@ -157,8 +165,8 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
             value={selectedPlantKind}
             onChange={(event) => setSelectedPlantKind(event.target.value as PlantKind)}
           >
-            {plants.map((plant) => (
-              <option key={plant.kind} value={plant.kind}>
+            {availablePlants.map((plant) => (
+              <option key={`${plant.kind}-${plant.name}`} value={plant.kind}>
                 {plant.name}
               </option>
             ))}

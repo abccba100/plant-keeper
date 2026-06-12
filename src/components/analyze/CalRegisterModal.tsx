@@ -89,6 +89,10 @@ function CalRegisterModalContent({
   const toggle = (id: string, val: boolean) => setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, on: val } : t)))
 
   const confirm = () => {
+    if (selected.length === 0) {
+      return
+    }
+
     selected.forEach((task) => {
       addTask({
         season,

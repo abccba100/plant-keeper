@@ -3,6 +3,19 @@ import { seasonTheme } from '../../styles/design-system/tokens'
 import type { CalendarDay, CalendarMoisture, Season } from '../../../store/calendarData'
 import type { Plant } from '../../../store/plantData'
 
+const nightWetSoil =
+  'linear-gradient(180deg, rgba(94, 135, 144, .3), rgba(32, 60, 65, .88) 54%, rgba(17, 42, 43, .78))'
+const nightDrySoil =
+  'linear-gradient(180deg, rgba(157, 116, 72, .3), rgba(91, 61, 42, .78) 58%, rgba(50, 37, 31, .72))'
+const nightSoil =
+  'linear-gradient(180deg, rgba(124, 94, 65, .28), rgba(72, 52, 38, .78) 58%, rgba(42, 35, 31, .7))'
+const nightFrostSoil =
+  'linear-gradient(180deg, rgba(219, 239, 249, .9), rgba(119, 151, 168, .62) 49%, rgba(42, 60, 68, .76))'
+const nightWetPatch =
+  'linear-gradient(180deg, rgba(124, 176, 189, .28), rgba(28, 67, 73, .88) 56%, rgba(15, 47, 48, .78))'
+const nightFrostPatch =
+  'linear-gradient(180deg, rgba(232, 246, 253, .9), rgba(126, 159, 177, .58) 55%, rgba(48, 68, 78, .74))'
+
 export const Landscape = styled.div<{ season: Season; day: CalendarDay }>`
   position: absolute;
   left: 0;
@@ -29,6 +42,21 @@ export const Landscape = styled.div<{ season: Season; day: CalendarDay }>`
     opacity: ${({ season }) => (season === 'winter' ? 0.34 : 0.52)};
   }
 
+  html[data-theme='night'] &::before {
+    background: ${({ season }) =>
+      season === 'winter'
+        ? `
+      radial-gradient(ellipse at 50% 96%, rgba(124, 171, 188, 0.16), transparent 62%),
+      linear-gradient(180deg, transparent 8%, rgba(141, 185, 204, 0.08) 68%, rgba(202, 232, 244, 0.1))`
+        : `
+      radial-gradient(ellipse at 50% 94%, rgba(55, 42, 29, 0.13), transparent 58%),
+      radial-gradient(ellipse at 52% 82%, color-mix(in srgb, ${seasonTheme[season].accent} 18%, transparent), transparent 68%),
+      ${seasonTheme[season].particle}`};
+    mix-blend-mode: ${({ season }) => (season === 'winter' ? 'normal' : 'soft-light')};
+    opacity: ${({ season }) => (season === 'winter' ? 0.36 : 0.34)};
+    filter: none;
+  }
+
   &::after {
     content: '';
     position: absolute;
@@ -40,6 +68,13 @@ export const Landscape = styled.div<{ season: Season; day: CalendarDay }>`
       linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.3)),
       linear-gradient(90deg, transparent, color-mix(in srgb, ${({ season }) => seasonTheme[season].accent} 14%, transparent), transparent);
     opacity: ${({ day }) => (day.inMonth ? 0.26 : 0.45)};
+  }
+
+  html[data-theme='night'] &::after {
+    background:
+      linear-gradient(180deg, transparent, ${({ season }) => (season === 'winter' ? 'rgba(170, 215, 235, 0.07)' : 'rgba(170, 215, 235, 0.12)')}),
+      linear-gradient(90deg, transparent, color-mix(in srgb, ${({ season }) => seasonTheme[season].accent} 22%, transparent), transparent);
+    opacity: ${({ season, day }) => (season === 'winter' ? (day.inMonth ? 0.24 : 0.16) : day.inMonth ? 0.34 : 0.22)};
   }
 
   @media (max-width: 760px) {
@@ -63,6 +98,13 @@ export const CellGardenScene = styled.div<{ season: Season; day: CalendarDay }>`
       radial-gradient(ellipse at 54% 54%, color-mix(in srgb, ${({ season }) => seasonTheme[season].accent} 24%, transparent), transparent 64%);
     mix-blend-mode: screen;
     opacity: ${({ season }) => (season === 'winter' ? 0.56 : 0.84)};
+  }
+
+  html[data-theme='night'] & .scene-glow {
+    background:
+      radial-gradient(ellipse at 50% 92%, rgba(76, 116, 126, 0.18), transparent 54%),
+      radial-gradient(ellipse at 54% 54%, color-mix(in srgb, ${({ season }) => seasonTheme[season].accent} 28%, transparent), transparent 64%);
+    opacity: ${({ season }) => (season === 'winter' ? 0.48 : 0.58)};
   }
 
   .season-sprinkles {
@@ -94,6 +136,12 @@ export const CellGardenScene = styled.div<{ season: Season; day: CalendarDay }>`
     background-size: 48px 18px;
     opacity: ${({ season }) => (season === 'summer' ? 0.46 : 0.72)};
     mix-blend-mode: multiply;
+  }
+
+  html[data-theme='night'] & .season-sprinkles {
+    opacity: ${({ season }) => (season === 'winter' ? 0.64 : season === 'summer' ? 0.36 : 0.56)};
+    mix-blend-mode: ${({ season }) => (season === 'winter' ? 'screen' : 'soft-light')};
+    filter: ${({ season }) => (season === 'winter' ? 'drop-shadow(0 0 5px rgba(210, 239, 255, 0.22))' : 'none')};
   }
 
   .cell-decor {
@@ -128,6 +176,12 @@ export const CellGardenScene = styled.div<{ season: Season; day: CalendarDay }>`
     mix-blend-mode: multiply;
   }
 
+  html[data-theme='night'] & .cell-decor {
+    opacity: ${({ season, day }) => (season === 'winter' ? (day.isSelected ? 0.5 : 0.34) : day.isSelected ? 0.42 : 0.27)};
+    mix-blend-mode: ${({ season }) => (season === 'winter' ? 'screen' : 'soft-light')};
+    filter: ${({ season }) => (season === 'winter' ? 'drop-shadow(0 0 5px rgba(218, 241, 255, 0.18))' : 'none')};
+  }
+
   .cell-decor-alt {
     right: auto;
     left: 9px;
@@ -151,6 +205,13 @@ export const CellGardenScene = styled.div<{ season: Season; day: CalendarDay }>`
     animation: waterDrop 1.9s ease-in-out infinite;
   }
 
+  html[data-theme='night'] & .water-drop {
+    background: linear-gradient(180deg, rgba(210, 247, 255, 0.96), rgba(84, 181, 202, 0.6));
+    box-shadow:
+      0 0 10px rgba(97, 206, 226, 0.32),
+      0 4px 9px rgba(11, 38, 48, 0.32);
+  }
+
   .drop-a {
     left: 38%;
     animation-delay: -0.2s;
@@ -172,6 +233,11 @@ export const CellGardenScene = styled.div<{ season: Season; day: CalendarDay }>`
     border-radius: 50%;
     background: radial-gradient(ellipse at 50% 50%, rgba(91, 154, 165, 0.3), rgba(60, 104, 107, 0.08) 46%, transparent 70%);
     animation: waterRipple 2.2s ease-out infinite;
+  }
+
+  html[data-theme='night'] & .water-ripple {
+    background: radial-gradient(ellipse at 50% 50%, rgba(117, 218, 232, 0.42), rgba(44, 136, 150, 0.18) 48%, transparent 72%);
+    filter: drop-shadow(0 0 8px rgba(91, 206, 226, 0.22));
   }
 `
 
@@ -200,6 +266,14 @@ export const CellSoil = styled.div<{ season: Season; day: CalendarDay }>`
     filter 220ms ease;
   animation: ${({ day }) => (day.moisture === 'wet' ? 'soilSoak 780ms ease-out' : 'none')};
 
+  html[data-theme='night'] & {
+    background: ${({ season, day }) =>
+      day.moisture === 'wet' ? nightWetSoil : season === 'winter' ? nightFrostSoil : day.moisture === 'dry' ? nightDrySoil : nightSoil};
+    box-shadow:
+      inset 0 4px 9px rgba(206, 238, 255, 0.14),
+      0 5px 10px rgba(0, 0, 0, 0.24);
+  }
+
   &::before,
   &::after {
     content: '';
@@ -217,6 +291,17 @@ export const CellSoil = styled.div<{ season: Season; day: CalendarDay }>`
     mix-blend-mode: multiply;
   }
 
+  html[data-theme='night'] &::before {
+    background:
+      radial-gradient(circle at 12% 58%, rgba(4, 19, 20, .24) 0 2px, transparent 3px),
+      radial-gradient(circle at 27% 43%, rgba(189, 224, 231, .18) 0 2px, transparent 3px),
+      radial-gradient(circle at 45% 64%, rgba(5, 22, 22, .2) 0 2px, transparent 3px),
+      radial-gradient(circle at 66% 48%, rgba(154, 195, 205, .16) 0 2px, transparent 3px),
+      radial-gradient(circle at 84% 62%, rgba(6, 18, 21, .2) 0 2px, transparent 3px);
+    opacity: ${({ season, day }) => (day.moisture === 'wet' ? 0.48 : season === 'winter' ? 0.28 : 0.42)};
+    mix-blend-mode: normal;
+  }
+
   &::after {
     top: -3px;
     height: 8px;
@@ -228,6 +313,14 @@ export const CellSoil = styled.div<{ season: Season; day: CalendarDay }>`
     mix-blend-mode: screen;
   }
 
+  html[data-theme='night'] &::after {
+    background: ${({ season, day }) =>
+      day.moisture === 'wet' || season === 'winter'
+        ? 'linear-gradient(90deg, transparent, rgba(202, 241, 255, .44), transparent)'
+        : 'linear-gradient(90deg, transparent, rgba(224, 191, 151, .2), transparent)'};
+    opacity: ${({ day }) => (day.moisture === 'wet' ? 0.9 : 0.64)};
+  }
+
   .soil-shine {
     position: absolute;
     left: 10%;
@@ -237,6 +330,11 @@ export const CellSoil = styled.div<{ season: Season; day: CalendarDay }>`
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.28);
     opacity: ${({ day }) => (day.moisture === 'dry' ? 0.18 : 0.4)};
+  }
+
+  html[data-theme='night'] & .soil-shine {
+    background: rgba(213, 243, 255, 0.38);
+    opacity: ${({ day }) => (day.moisture === 'wet' ? 0.66 : day.moisture === 'dry' ? 0.16 : 0.34)};
   }
 
 `
@@ -273,6 +371,20 @@ export const CellSoilPatch = styled.span<{ season: Season; moisture: CalendarMoi
   transform: translateX(-50%);
   animation: ${({ moisture }) => (moisture === 'wet' ? 'anchoredSoilSoak 780ms ease-out' : 'none')};
 
+  html[data-theme='night'] & {
+    background: ${({ season, moisture }) =>
+      moisture === 'wet'
+        ? nightWetPatch
+        : season === 'winter' || moisture === 'frost'
+          ? nightFrostPatch
+          : moisture === 'dry'
+            ? nightDrySoil
+            : nightSoil};
+    box-shadow:
+      inset 0 3px 8px rgba(202, 239, 255, 0.15),
+      0 5px 9px rgba(0, 0, 0, 0.26);
+  }
+
   &::after {
     content: '';
     position: absolute;
@@ -286,6 +398,15 @@ export const CellSoilPatch = styled.span<{ season: Season; moisture: CalendarMoi
     mix-blend-mode: multiply;
   }
 
+  html[data-theme='night'] &::after {
+    background:
+      radial-gradient(circle at 18% 55%, rgba(3, 18, 20, .22) 0 2px, transparent 3px),
+      radial-gradient(circle at 48% 45%, rgba(178, 221, 230, .17) 0 2px, transparent 3px),
+      radial-gradient(circle at 77% 58%, rgba(5, 19, 21, .2) 0 2px, transparent 3px);
+    opacity: ${({ season, moisture }) => (moisture === 'wet' ? 0.5 : season === 'winter' ? 0.3 : 0.42)};
+    mix-blend-mode: normal;
+  }
+
   .soil-shine {
     position: absolute;
     left: 15%;
@@ -295,6 +416,11 @@ export const CellSoilPatch = styled.span<{ season: Season; moisture: CalendarMoi
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.26);
     opacity: ${({ moisture }) => (moisture === 'dry' ? 0.16 : 0.4)};
+  }
+
+  html[data-theme='night'] & .soil-shine {
+    background: rgba(213, 243, 255, 0.38);
+    opacity: ${({ moisture }) => (moisture === 'wet' ? 0.68 : moisture === 'dry' ? 0.16 : 0.36)};
   }
 
   .water-drop {

@@ -10,6 +10,8 @@ import { CalRegisterModal } from '../../components/analyze/CalRegisterModal'
 
 import { AnalyzingCard, AnalyzeRail, DiagnosisCards, InputCard, QuestionsCard } from '../../components/analyze/AnalyzePanels'
 import { AN_STEPS, NO_SYMPTOM, QUESTIONS, anStepIndex, createDiagnosis, type AnalyzeState, type Answers, type PlantOption, type Question } from '../../store/analyzeModel'
+import { getPlantTone, type PlantKind } from '../../store/plantData'
+import { usePlantStore } from '../../store/plantStore'
 export function AnalyzePage() {
   const [state, setState] = useState<AnalyzeState>('input')
   const [plant, setPlant] = useState<PlantOption | null>(null)
@@ -21,6 +23,9 @@ export function AnalyzePage() {
   const [error, setError] = useState<string>()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const diagnosis = useMemo(() => createDiagnosis(answers), [answers])
+  const addPlant = usePlantStore((store) => store.addPlant)
+  const selectedPlantKind: PlantKind = plant?.kind ?? 'monstera'
+  const selectedPlantName = plantName.trim() || '내 식물'
 
   useEffect(() => () => revokeObjectUrl(photoUrl), [photoUrl])
 
@@ -143,11 +148,11 @@ export function AnalyzePage() {
       <CalRegisterModal
         open={modal}
         preset="diagnose"
-        plantName={plantName || '내 식물'}
-        plantKind={plant?.kind ?? 'monstera'}
+        plantName={selectedPlantName}
+        plantKind={selectedPlantKind}
         onClose={() => setModal(false)}
+        onConfirm={() => addPlant({ name: selectedPlantName, kind: selectedPlantKind, tone: getPlantTone(selectedPlantKind) })}
       />
     </>
   )
 }
-

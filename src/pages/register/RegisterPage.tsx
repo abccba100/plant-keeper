@@ -11,6 +11,8 @@ import { getImageUploadError, replaceObjectUrl, revokeObjectUrl } from '../../ap
 
 import { FlowCard, RegRail } from '../../components/register/RegisterPanels'
 import { SPECIES_BY_FILE, STEPS, pickSpecies, stepIndexFor, type RegisterState, type Species } from '../../store/registerModel'
+import { getPlantTone } from '../../store/plantData'
+import { usePlantStore } from '../../store/plantStore'
 export function RegisterPage() {
   const [state, setState] = useState<RegisterState>('idle')
   const [modal, setModal] = useState(false)
@@ -20,6 +22,7 @@ export function RegisterPage() {
   const [species, setSpecies] = useState<Species>(SPECIES_BY_FILE[0])
   const [error, setError] = useState<string>()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const addPlant = usePlantStore((store) => store.addPlant)
 
   useEffect(() => () => revokeObjectUrl(fileUrl), [fileUrl])
 
@@ -44,6 +47,11 @@ export function RegisterPage() {
   }
 
   const confirmRegister = () => {
+    addPlant({
+      name: species.name,
+      kind: species.kind,
+      tone: getPlantTone(species.kind),
+    })
     setState('registered')
     setToast(true)
     window.setTimeout(() => setToast(false), 3200)
@@ -131,4 +139,3 @@ export function RegisterPage() {
     </>
   )
 }
-

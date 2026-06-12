@@ -522,6 +522,35 @@ export const SoftButton = styled.button`
   }
 `
 
+export const SoftSelect = styled.select`
+  min-width: 112px;
+  height: 42px;
+  padding: 0 34px 0 14px;
+  border: 1px solid var(--control-line);
+  border-radius: ${radii.control};
+  color: #1b201b;
+  background: var(--control-surface);
+  box-shadow:
+    0 8px 20px rgba(72, 67, 53, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  html[data-theme='night'] & {
+    color: #edf6ff;
+    box-shadow:
+      0 10px 22px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+`
+
 export const ToolbarSpacer = styled.span`
   flex: 1;
 

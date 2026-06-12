@@ -193,16 +193,26 @@ export const DayCell = styled.div<{ season: Season; day: CalendarDay }>`
   }
 
   html[data-theme='night'] & {
-    background: ${({ day }) => (day.isSelected ? 'rgba(127, 168, 255, 0.22)' : 'rgba(13, 24, 42, 0.82)')};
+    background: ${({ day, season }) =>
+      season === 'winter'
+        ? day.isSelected
+          ? 'linear-gradient(180deg, rgba(34, 54, 79, 0.88), rgba(18, 34, 53, 0.9) 50%, rgba(17, 37, 48, 0.88))'
+          : 'linear-gradient(180deg, rgba(13, 24, 42, 0.9), rgba(12, 24, 39, 0.91) 52%, rgba(14, 31, 42, 0.88))'
+        : day.isSelected
+          ? 'rgba(127, 168, 255, 0.22)'
+          : 'rgba(13, 24, 42, 0.82)'};
     box-shadow:
       inset 0 1px 0 rgba(213, 227, 255, 0.08),
-      inset 0 -28px 36px rgba(0, 0, 0, 0.1);
+      inset 0 -28px 36px ${({ season }) => (season === 'winter' ? 'rgba(157, 212, 232, 0.045)' : 'rgba(0, 0, 0, 0.1)')};
   }
 
   html[data-theme='night'] &:hover {
-    background:
+    background: ${({ season }) =>
+      season === 'winter'
+        ? 'linear-gradient(180deg, rgba(36, 58, 85, 0.92), rgba(18, 36, 55, 0.92) 50%, rgba(18, 41, 53, 0.9))'
+        : `
       linear-gradient(135deg, rgba(127, 168, 255, 0.18), rgba(12, 22, 40, 0.9)),
-      rgba(13, 24, 42, 0.88);
+      rgba(13, 24, 42, 0.88)`};
   }
 
   &:focus-visible {

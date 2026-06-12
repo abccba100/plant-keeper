@@ -3,6 +3,15 @@ import { seasonTheme } from '../../styles/design-system/tokens'
 import type { CalendarDay, CalendarMoisture, Season } from '../../../store/calendarData'
 import type { Plant } from '../../../store/plantData'
 
+const nightWetSoil =
+  'linear-gradient(180deg, rgba(120, 176, 190, .28), rgba(29, 67, 75, .88) 58%, rgba(14, 43, 46, .78))'
+const nightDrySoil =
+  'linear-gradient(180deg, rgba(153, 113, 72, .28), rgba(87, 59, 42, .78) 60%, rgba(47, 37, 32, .72))'
+const nightSoil =
+  'linear-gradient(180deg, rgba(122, 93, 66, .26), rgba(68, 51, 39, .76) 60%, rgba(41, 35, 32, .7))'
+const nightFrostSoil =
+  'linear-gradient(180deg, rgba(229, 246, 253, .9), rgba(123, 158, 177, .6) 56%, rgba(45, 65, 76, .76))'
+
 export const SoilBand = styled.div<{ season: Season; day: CalendarDay }>`
   position: absolute;
   left: 4px;
@@ -22,6 +31,15 @@ export const SoilBand = styled.div<{ season: Season; day: CalendarDay }>`
     box-shadow 220ms ease;
   animation: ${({ day }) => (day.moisture === 'wet' ? 'soilSoak 780ms ease-out' : 'none')};
 
+  html[data-theme='night'] & {
+    background:
+      ${({ day, season }) =>
+        day.moisture === 'wet' ? nightWetSoil : season === 'winter' || day.moisture === 'frost' ? nightFrostSoil : day.moisture === 'dry' ? nightDrySoil : nightSoil};
+    box-shadow:
+      inset 0 4px 10px rgba(207, 240, 255, 0.15),
+      0 6px 10px rgba(0, 0, 0, 0.25);
+  }
+
   .texture,
   &::after {
     content: '';
@@ -40,6 +58,16 @@ export const SoilBand = styled.div<{ season: Season; day: CalendarDay }>`
       36px 14px;
     mix-blend-mode: multiply;
     opacity: ${({ season }) => (season === 'winter' ? 0.45 : 0.78)};
+  }
+
+  html[data-theme='night'] & .texture,
+  html[data-theme='night'] &::after {
+    background:
+      radial-gradient(circle at 12% 58%, rgba(4, 19, 21, 0.24) 0 2px, transparent 3px),
+      radial-gradient(circle at 28% 36%, rgba(183, 224, 232, 0.16) 0 2px, transparent 3px),
+      radial-gradient(circle at 58% 45%, rgba(5, 20, 22, 0.18) 0 2px, transparent 3px);
+    mix-blend-mode: normal;
+    opacity: ${({ season, day }) => (day.moisture === 'wet' ? 0.5 : season === 'winter' ? 0.3 : 0.42)};
   }
 
 `
@@ -74,6 +102,14 @@ export const DetailSoilPatch = styled.span<{ season: Season; moisture: CalendarM
   transform: translateX(-50%);
   animation: ${({ moisture }) => (moisture === 'wet' ? 'anchoredSoilSoak 780ms ease-out' : 'none')};
 
+  html[data-theme='night'] & {
+    background: ${({ season, moisture }) =>
+      moisture === 'wet' ? nightWetSoil : season === 'winter' || moisture === 'frost' ? nightFrostSoil : moisture === 'dry' ? nightDrySoil : nightSoil};
+    box-shadow:
+      inset 0 4px 10px rgba(207, 240, 255, 0.15),
+      0 6px 10px rgba(0, 0, 0, 0.25);
+  }
+
   &::after {
     content: '';
     position: absolute;
@@ -91,6 +127,14 @@ export const DetailSoilPatch = styled.span<{ season: Season; moisture: CalendarM
     opacity: ${({ season }) => (season === 'winter' ? 0.42 : 0.72)};
   }
 
+  html[data-theme='night'] &::after {
+    background:
+      radial-gradient(circle at 18% 56%, rgba(4, 19, 21, 0.23) 0 2px, transparent 3px),
+      radial-gradient(circle at 54% 42%, rgba(183, 224, 232, 0.16) 0 2px, transparent 3px);
+    mix-blend-mode: normal;
+    opacity: ${({ season, moisture }) => (moisture === 'wet' ? 0.5 : season === 'winter' ? 0.3 : 0.42)};
+  }
+
   .soil-shine {
     position: absolute;
     left: 14%;
@@ -102,6 +146,11 @@ export const DetailSoilPatch = styled.span<{ season: Season; moisture: CalendarM
     opacity: ${({ moisture }) => (moisture === 'dry' ? 0.18 : 0.4)};
   }
 
+  html[data-theme='night'] & .soil-shine {
+    background: rgba(213, 243, 255, 0.38);
+    opacity: ${({ moisture }) => (moisture === 'wet' ? 0.68 : moisture === 'dry' ? 0.16 : 0.36)};
+  }
+
   .puddle {
     position: absolute;
     left: 22%;
@@ -111,6 +160,11 @@ export const DetailSoilPatch = styled.span<{ season: Season; moisture: CalendarM
     height: ${({ compact }) => (compact ? '6px' : '8px')};
     border-radius: 50%;
     background: radial-gradient(ellipse at 50% 50%, rgba(40, 77, 83, 0.52), rgba(31, 55, 56, 0.05) 70%);
+  }
+
+  html[data-theme='night'] & .puddle {
+    background: radial-gradient(ellipse at 50% 50%, rgba(117, 218, 232, 0.5), rgba(41, 128, 143, 0.18) 58%, transparent 76%);
+    filter: drop-shadow(0 0 8px rgba(91, 206, 226, 0.24));
   }
 `
 
