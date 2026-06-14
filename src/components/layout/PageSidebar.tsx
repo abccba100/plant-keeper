@@ -91,7 +91,7 @@ export function PageSidebar({ season = 'spring', activePath }: Props) {
           {plants.map((plant) => (
             <div
               className="plant-line"
-              key={`${plant.kind}-${plant.name}`}
+              key={plant.id}
               style={{ '--tone': plant.tone } as CSSProperties}
             >
               <PlantAvatar kind={plant.kind} season={season} />

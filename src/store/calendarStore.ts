@@ -1,21 +1,23 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import {
-  defaultSelectedDateBySeason,
   getCalendarDateKey,
+  getCurrentSeason,
+  getDefaultSelectedDateBySeason,
   seasonOrder,
   type CalendarTaskType,
   type CompletedTaskMap,
   type Season,
   type UserCalendarTaskMap,
 } from './calendarData'
-import type { PlantKind } from './plantData'
+import type { PlantId, PlantKind } from './plantData'
 
 type AddCalendarTaskInput = {
   season: Season
   date: number
   type: CalendarTaskType
   title: string
+  plantId?: PlantId
   plantKind: PlantKind
   time: string
 }
@@ -38,12 +40,12 @@ type CalendarStore = {
 
 function getInitialSeason(): Season {
   if (typeof window === 'undefined') {
-    return 'spring'
+    return getCurrentSeason()
   }
 
   const seasonParam = new URLSearchParams(window.location.search).get('season') as Season | null
 
-  return seasonParam && seasonOrder.includes(seasonParam) ? seasonParam : 'spring'
+  return seasonParam && seasonOrder.includes(seasonParam) ? seasonParam : getCurrentSeason()
 }
 
 const initialSeason = getInitialSeason()
@@ -52,7 +54,7 @@ export const useCalendarStore = create<CalendarStore>()(
   persist(
     (set) => ({
       season: initialSeason,
-      selectedDate: defaultSelectedDateBySeason[initialSeason],
+      selectedDate: getDefaultSelectedDateBySeason(initialSeason),
       showDetail: false,
       completedTaskIds: {},
       userTasksByDate: {},
@@ -60,14 +62,15 @@ export const useCalendarStore = create<CalendarStore>()(
       setSeason: (season) =>
         set({
           season,
-          selectedDate: defaultSelectedDateBySeason[season],
+          selectedDate: getDefaultSelectedDateBySeason(season),
           showDetail: false,
         }),
       selectDate: (date) => set({ selectedDate: date, showDetail: true }),
       addTask: (task) =>
         set((state) => {
           const dateKey = getCalendarDateKey(task.season, task.date)
-          const id = `${dateKey}-${task.type}-${task.plantKind}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+          const plantKey = task.plantId ?? task.plantKind
+          const id = `${dateKey}-${task.type}-${plantKey}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 
           return {
             userTasksByDate: {
@@ -78,6 +81,7 @@ export const useCalendarStore = create<CalendarStore>()(
                   id,
                   type: task.type,
                   title: task.title,
+                  plantId: task.plantId,
                   plantKind: task.plantKind,
                   time: task.time,
                 },

@@ -24,9 +24,16 @@ export function RegisterPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const addPlant = usePlantStore((store) => store.addPlant)
 
-  useEffect(() => () => revokeObjectUrl(fileUrl), [fileUrl])
+  const subtitle =
+    state === 'idle' || state === 'preview'
+      ? '사진 한 장으로 식물을 인식하고, 맞춤 관리 일정을 만들 수 있어요.'
+      : state === 'analyzing'
+        ? 'AI가 식물을 분석하고 있어요.'
+        : state === 'result'
+          ? '인식된 식물의 관리 정보를 확인하고 등록해 보세요.'
+          : '등록이 완료되었어요.'
 
-  const pickFile = (file: File) => {
+  function pickFile(file: File) {
     const uploadError = getImageUploadError(file)
 
     if (uploadError) {
@@ -41,13 +48,13 @@ export function RegisterPage() {
     setState('preview')
   }
 
-  const analyze = () => {
+  function analyze() {
     setState('analyzing')
     window.setTimeout(() => setState('result'), 1200)
   }
 
-  const confirmRegister = () => {
-    addPlant({
+  function confirmRegister() {
+    const plant = addPlant({
       name: species.name,
       kind: species.kind,
       tone: getPlantTone(species.kind),
@@ -55,9 +62,11 @@ export function RegisterPage() {
     setState('registered')
     setToast(true)
     window.setTimeout(() => setToast(false), 3200)
+
+    return plant
   }
 
-  const reset = () => {
+  function reset() {
     revokeObjectUrl(fileUrl)
     setState('idle')
     setModal(false)
@@ -69,14 +78,7 @@ export function RegisterPage() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  const subtitle =
-    state === 'idle' || state === 'preview'
-      ? '사진 한 장으로 식물을 인식하고, 맞춤 관리 일정을 만들 수 있어요.'
-      : state === 'analyzing'
-        ? 'AI가 식물을 분석하고 있어요.'
-        : state === 'result'
-          ? '인식된 식물의 관리 정보를 확인하고 등록해 보세요.'
-          : '등록이 완료되었어요.'
+  useEffect(() => () => revokeObjectUrl(fileUrl), [fileUrl])
 
   return (
     <>

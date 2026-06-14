@@ -27,9 +27,14 @@ export function AnalyzePage() {
   const selectedPlantKind: PlantKind = plant?.kind ?? 'monstera'
   const selectedPlantName = plantName.trim() || '내 식물'
 
-  useEffect(() => () => revokeObjectUrl(photoUrl), [photoUrl])
+  const subtitle =
+    state === 'input'
+      ? '식물 이름과 사진을 올리면 AI가 상태를 분석해 드려요.'
+      : state === 'questions' || state === 'analyzing'
+        ? '정확한 진단을 위해 몇 가지를 더 물어볼게요.'
+        : '현재 상태 진단과 맞춤 해결 방법을 확인하세요.'
 
-  const pickPhoto = (file: File) => {
+  function pickPhoto(file: File) {
     const uploadError = getImageUploadError(file)
 
     if (uploadError) {
@@ -41,13 +46,13 @@ export function AnalyzePage() {
     setPhotoUrl((oldUrl) => replaceObjectUrl(oldUrl, file))
   }
 
-  const onAnswer = (q: Question, option: string) => {
+  function handleAnswer(question: Question, option: string) {
     setAnswers((current) => {
-      if (!q.multi) return { ...current, [q.id]: [option] }
+      if (!question.multi) return { ...current, [question.id]: [option] }
 
-      const selected = current[q.id] ?? []
+      const selected = current[question.id] ?? []
       if (option === NO_SYMPTOM) {
-        return { ...current, [q.id]: selected.includes(option) ? [] : [option] }
+        return { ...current, [question.id]: selected.includes(option) ? [] : [option] }
       }
 
       const withoutNoSymptom = selected.filter((item) => item !== NO_SYMPTOM)
@@ -55,43 +60,38 @@ export function AnalyzePage() {
         ? withoutNoSymptom.filter((item) => item !== option)
         : [...withoutNoSymptom, option]
 
-      return { ...current, [q.id]: next }
+      return { ...current, [question.id]: next }
     })
   }
 
-  const onNext = () => {
+  function goToNextQuestion() {
     if (step < QUESTIONS.length - 1) {
-      setStep((s) => s + 1)
+      setStep((currentStep) => currentStep + 1)
       return
     }
     setState('analyzing')
     window.setTimeout(() => setState('result'), 1200)
   }
 
-  const start = () => {
+  function startDiagnosis() {
     setState('questions')
     setStep(0)
     setAnswers({})
   }
 
-  const retry = () => {
+  function retryDiagnosis() {
     setState('input')
     setStep(0)
     setAnswers({})
     setModal(false)
   }
 
-  const selectPlant = (option: PlantOption) => {
+  function selectPlant(option: PlantOption) {
     setPlant(option)
     setPlantName(option.name)
   }
 
-  const subtitle =
-    state === 'input'
-      ? '식물 이름과 사진을 올리면 AI가 상태를 분석해 드려요.'
-      : state === 'questions' || state === 'analyzing'
-        ? '정확한 진단을 위해 몇 가지를 더 물어볼게요.'
-        : '현재 상태 진단과 맞춤 해결 방법을 확인하세요.'
+  useEffect(() => () => revokeObjectUrl(photoUrl), [photoUrl])
 
   return (
     <>
@@ -133,12 +133,12 @@ export function AnalyzePage() {
                     setPlant(null)
                   }}
                   onPhotoClick={() => fileInputRef.current?.click()}
-                  onStart={start}
+                  onStart={startDiagnosis}
                 />
               )}
-              {state === 'questions' && <QuestionsCard step={step} answers={answers} onAnswer={onAnswer} onNext={onNext} />}
+              {state === 'questions' && <QuestionsCard step={step} answers={answers} onAnswer={handleAnswer} onNext={goToNextQuestion} />}
               {state === 'analyzing' && <AnalyzingCard />}
-              {state === 'result' && <DiagnosisCards diagnosis={diagnosis} onRegister={() => setModal(true)} onRetry={retry} />}
+              {state === 'result' && <DiagnosisCards diagnosis={diagnosis} onRegister={() => setModal(true)} onRetry={retryDiagnosis} />}
             </div>
             <AnalyzeRail state={state} diagnosis={diagnosis} />
           </div>

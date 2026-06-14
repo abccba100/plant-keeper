@@ -1,4 +1,4 @@
-import { plants, type Plant, type PlantKind } from './plantData'
+import { plants, type Plant, type PlantId, type PlantKind } from './plantData'
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter'
 
@@ -21,6 +21,7 @@ export type UserCalendarTask = {
   id: string
   type: CalendarTaskType
   title: string
+  plantId?: PlantId
   plantKind: PlantKind
   time: string
 }
@@ -51,6 +52,67 @@ export const defaultSelectedDateBySeason: Record<Season, number> = {
   winter: 25,
 }
 
+const representativeMonthBySeason: Record<Season, number> = {
+  spring: 3,
+  summer: 6,
+  autumn: 9,
+  winter: 11,
+}
+
+function getSeasonForDate(date: Date): Season {
+  const month = date.getMonth()
+
+  if (month >= 2 && month <= 4) return 'spring'
+  if (month >= 5 && month <= 7) return 'summer'
+  if (month >= 8 && month <= 10) return 'autumn'
+  return 'winter'
+}
+
+export function getCurrentSeason(now = new Date()) {
+  return getSeasonForDate(now)
+}
+
+function formatDateKey(year: number, monthIndex: number, date: number) {
+  return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`
+}
+
+function getGridStart(year: number, monthIndex: number) {
+  const firstDay = new Date(year, monthIndex, 1)
+  const mondayOffset = (firstDay.getDay() + 6) % 7
+  return new Date(year, monthIndex, 1 - mondayOffset)
+}
+
+export function getSeasonCalendarInfo(season: Season, now = new Date()) {
+  const currentSeason = getSeasonForDate(now)
+  const monthIndex = currentSeason === season ? now.getMonth() : representativeMonthBySeason[season]
+  const year = now.getFullYear()
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+  const gridStart = getGridStart(year, monthIndex)
+  const todayDate = currentSeason === season && now.getFullYear() === year && now.getMonth() === monthIndex ? now.getDate() : undefined
+  const selectedDate = todayDate ?? Math.min(defaultSelectedDateBySeason[season], daysInMonth)
+
+  return {
+    year,
+    monthIndex,
+    daysInMonth,
+    gridStart,
+    initialDate: formatDateKey(year, monthIndex, 1),
+    gridStartDate: formatDateKey(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate()),
+    monthLabel: `${year}년 ${monthIndex + 1}월`,
+    selectedDate,
+    todayDate,
+    isCurrentSeason: currentSeason === season,
+  }
+}
+
+export function getDefaultSelectedDateBySeason(season: Season) {
+  return getSeasonCalendarInfo(season).selectedDate
+}
+
+export function getSeasonMonthLabel(season: Season) {
+  return getSeasonCalendarInfo(season).monthLabel
+}
+
 export function getCalendarDateKey(season: Season, date: number) {
   return `${season}-${date}`
 }
@@ -59,42 +121,30 @@ export const seasonMeta: Record<
   Season,
   {
     label: string
-    month: string
     tipTitle: string
     tip: string
   }
 > = {
   spring: {
     label: '봄',
-    month: '2024년 4월',
     tipTitle: '봄 관리 팁',
     tip: '새싹이 자라는 계절이에요. 햇빛과 통풍을 충분히 해주고, 분갈이와 영양제 관리도 함께 해주세요.',
   },
   summer: {
     label: '여름',
-    month: '2024년 7월',
     tipTitle: '여름 관리 팁',
     tip: '습도가 높아 과습에 주의하세요. 통풍이 잘 되는 환경을 유지해주세요.',
   },
   autumn: {
     label: '가을',
-    month: '2024년 10월',
     tipTitle: '가을 관리 팁',
     tip: '일교차가 커지는 계절이에요. 과습에 주의하고 통풍을 잘 유지해주세요.',
   },
   winter: {
     label: '겨울',
-    month: '2024년 12월',
     tipTitle: '겨울 관리 팁',
     tip: '실내 습도를 유지하고 찬바람을 피해 주세요. 식물의 성장 속도가 느려지는 시기입니다.',
   },
-}
-
-const dayNumbersBySeason: Record<Season, number[]> = {
-  spring: [...Array.from({ length: 30 }, (_, index) => index + 1), ...Array.from({ length: 12 }, (_, index) => index + 1)],
-  summer: [...Array.from({ length: 31 }, (_, index) => index + 1), ...Array.from({ length: 11 }, (_, index) => index + 1)],
-  autumn: [30, ...Array.from({ length: 31 }, (_, index) => index + 1), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  winter: [25, 26, 27, 28, 29, 30, ...Array.from({ length: 31 }, (_, index) => index + 1), 1, 2, 3, 4, 5],
 }
 
 export function getCalendarDays(
@@ -104,13 +154,14 @@ export function getCalendarDays(
   userTasksByDate: UserCalendarTaskMap = {},
   availablePlants: Plant[] = plants,
 ): CalendarDay[] {
-  const startIndex = season === 'winter' ? 6 : season === 'autumn' ? 1 : 0
-  const daysInMonth = season === 'spring' ? 30 : 31
-  const today = defaultSelectedDateBySeason[season]
+  const calendarInfo = getSeasonCalendarInfo(season)
   const plantCatalog = availablePlants.length > 0 ? availablePlants : plants
 
-  return dayNumbersBySeason[season].slice(0, 42).map((date, index) => {
-    const inMonth = index >= startIndex && index < startIndex + daysInMonth
+  return Array.from({ length: 42 }, (_, index) => {
+    const currentDate = new Date(calendarInfo.gridStart)
+    currentDate.setDate(calendarInfo.gridStart.getDate() + index)
+    const date = currentDate.getDate()
+    const inMonth = currentDate.getFullYear() === calendarInfo.year && currentDate.getMonth() === calendarInfo.monthIndex
     const density = (inMonth ? ((index + date) % 4) : 0) as CalendarDay['density']
     const plantCount = inMonth ? Math.max(1, Math.min(3, density + 1)) : 1
     const offset = (index + date) % plantCatalog.length
@@ -121,8 +172,8 @@ export function getCalendarDays(
     return {
       date,
       inMonth,
-      isSunday: index % 7 === 6,
-      isToday: inMonth && date === today,
+      isSunday: currentDate.getDay() === 0,
+      isToday: inMonth && date === calendarInfo.todayDate,
       isSelected: inMonth && date === selectedDate,
       moisture: season === 'winter' ? 'frost' : hasPendingWatering ? 'dry' : 'balanced',
       growth: ((index + date) % 4) as CalendarDay['growth'],
@@ -134,7 +185,7 @@ export function getCalendarDays(
 }
 
 export function getPlantMoisture(day: CalendarDay, plant: Plant): CalendarMoisture {
-  const wateringTask = day.tasks.find((task) => task.type === 'watering' && task.plant.kind === plant.kind)
+  const wateringTask = day.tasks.find((task) => task.type === 'watering' && task.plant.id === plant.id)
 
   if (!wateringTask) {
     return day.moisture === 'frost' ? 'frost' : 'balanced'
@@ -198,7 +249,7 @@ function createDayTasks(
   }
 
   const scheduledTasks = tasks.map((task) => {
-    const id = `${season}-${date}-${task.type}-${task.plant.kind}`
+    const id = `${season}-${date}-${task.type}-${task.plant.id}`
 
     return {
       ...task,
@@ -208,7 +259,12 @@ function createDayTasks(
   })
 
   const userTasks = (userTasksByDate[getCalendarDateKey(season, date)] ?? []).map((task) => {
-    const plant = plantCatalog.find((candidate) => candidate.kind === task.plantKind) ?? plants.find((candidate) => candidate.kind === task.plantKind) ?? firstPlant
+    const plant =
+      plantCatalog.find((candidate) => candidate.id === task.plantId) ??
+      plantCatalog.find((candidate) => candidate.kind === task.plantKind) ??
+      plants.find((candidate) => candidate.id === task.plantId) ??
+      plants.find((candidate) => candidate.kind === task.plantKind) ??
+      firstPlant
 
     return {
       id: task.id,

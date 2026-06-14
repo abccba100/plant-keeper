@@ -1,6 +1,6 @@
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import type { CalendarDay, CalendarMoisture, CalendarTask, CalendarTaskType, Season } from '../../store/calendarData'
+import { getSeasonCalendarInfo, type CalendarDay, type CalendarMoisture, type CalendarTask, type CalendarTaskType, type Season } from '../../store/calendarData'
 
 export const taskTone: Record<CalendarTask['type'], { icon: string; label: string }> = {
   watering: { icon: '◌', label: '물주기' },
@@ -36,11 +36,13 @@ export const taskComposerOptions: TaskComposerOption[] = [
 
 export const leafNodes = Array.from({ length: 6 }, (_, index) => index + 1)
 
-export const fullCalendarSeasonConfig: Record<Season, { initialDate: string; gridStart: string }> = {
-  spring: { initialDate: '2024-04-01', gridStart: '2024-04-01' },
-  summer: { initialDate: '2024-07-01', gridStart: '2024-07-01' },
-  autumn: { initialDate: '2024-10-01', gridStart: '2024-09-30' },
-  winter: { initialDate: '2024-12-01', gridStart: '2024-11-25' },
+export function getFullCalendarSeasonConfig(season: Season) {
+  const calendarInfo = getSeasonCalendarInfo(season)
+
+  return {
+    initialDate: calendarInfo.initialDate,
+    gridStart: calendarInfo.gridStartDate,
+  }
 }
 
 export const fullCalendarPlugins = [dayGridPlugin, interactionPlugin]
@@ -70,7 +72,7 @@ export function getDayOffset(startDateKey: string, date: Date) {
 }
 
 export function getFullCalendarDay(season: Season, days: CalendarDay[], date: Date) {
-  const offset = getDayOffset(fullCalendarSeasonConfig[season].gridStart, date)
+  const offset = getDayOffset(getFullCalendarSeasonConfig(season).gridStart, date)
 
   return offset >= 0 && offset < days.length ? days[offset] : undefined
 }

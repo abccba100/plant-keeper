@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useCalendarStore } from '../../store/calendarStore'
-import { defaultSelectedDateBySeason, type Season } from '../../store/calendarData'
-import type { PlantKind } from '../../store/plantData'
+import { getSeasonCalendarInfo, type Season } from '../../store/calendarData'
+import type { Plant, PlantId, PlantKind } from '../../store/plantData'
 import { navigate } from '../../api/navigation'
 import { Icon } from '../common/Icon'
 import { SCHEDULE_PRESETS } from '../../store/schedulePresets'
@@ -12,10 +12,10 @@ const START_OPTIONS = [
   { label: '이번 주말부터', offset: 5 },
 ]
 
-function CalToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+function CalToggle({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
   return (
     <label className="switch">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
       <span className="track" />
       <span className="thumb" />
     </label>
@@ -25,30 +25,39 @@ function CalToggle({ checked, onChange }: { checked: boolean; onChange: (v: bool
 interface Props {
   open: boolean
   preset?: 'identify' | 'diagnose'
+  plantId?: PlantId
   plantName?: string
   plantKind?: PlantKind
   title?: string
   onClose?: () => void
-  onConfirm?: () => void
+  onConfirm?: () => Plant | undefined | void
 }
 
 interface ModalContentProps {
   preset: 'identify' | 'diagnose'
+  plantId?: PlantId
   plantName: string
   plantKind: PlantKind
   title: string
   onClose: () => void
-  onConfirm: () => void
+  onConfirm: () => Plant | undefined | void
 }
 
 function getScheduleDate(season: Season, baseOffset: number, taskOffset: number) {
-  const maxDate = season === 'spring' ? 30 : 31
-  return Math.min(maxDate, defaultSelectedDateBySeason[season] + baseOffset + taskOffset)
+  const calendarInfo = getSeasonCalendarInfo(season)
+  const scheduledDate = new Date(calendarInfo.year, calendarInfo.monthIndex, calendarInfo.selectedDate + baseOffset + taskOffset)
+
+  if (scheduledDate.getFullYear() !== calendarInfo.year || scheduledDate.getMonth() !== calendarInfo.monthIndex) {
+    return null
+  }
+
+  return scheduledDate.getDate()
 }
 
 export function CalRegisterModal({
   open,
   preset = 'diagnose',
+  plantId,
   plantName = '몬스테라',
   plantKind = 'monstera',
   title = '관리 일정을 캘린더에 등록할까요?',
@@ -61,6 +70,7 @@ export function CalRegisterModal({
     <CalRegisterModalContent
       key={preset}
       preset={preset}
+      plantId={plantId}
       plantName={plantName}
       plantKind={plantKind}
       title={title}
@@ -72,6 +82,7 @@ export function CalRegisterModal({
 
 function CalRegisterModalContent({
   preset,
+  plantId,
   plantName,
   plantKind,
   title,
@@ -81,45 +92,55 @@ function CalRegisterModalContent({
   const season = useCalendarStore((state) => state.season)
   const addTask = useCalendarStore((state) => state.addTask)
   const selectDate = useCalendarStore((state) => state.selectDate)
-  const [tasks, setTasks] = useState(() => SCHEDULE_PRESETS[preset].map((t) => ({ ...t })))
+  const [scheduleTasks, setScheduleTasks] = useState(() => SCHEDULE_PRESETS[preset].map((task) => ({ ...task })))
   const [startOffset, setStartOffset] = useState(START_OPTIONS[0].offset)
   const [done, setDone] = useState(false)
 
-  const selected = tasks.filter((t) => t.on)
-  const toggle = (id: string, val: boolean) => setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, on: val } : t)))
+  const selectedTasks = scheduleTasks.filter((task) => task.on)
+  const taskRows = scheduleTasks.map((task) => ({ task, date: getScheduleDate(season, startOffset, task.dayOffset) }))
+  const schedulableSelected = taskRows.filter((row) => row.task.on && row.date !== null)
+  const startLabel = START_OPTIONS.find((option) => option.offset === startOffset)?.label ?? START_OPTIONS[0].label
+  const sub = `AI가 ${plantName}에게 추천한 관리 일정이에요. 등록할 항목만 선택하세요.`
 
-  const confirm = () => {
-    if (selected.length === 0) {
+  function handleTaskToggle(taskId: string, isSelected: boolean) {
+    setScheduleTasks((currentTasks) => currentTasks.map((task) => (task.id === taskId ? { ...task, on: isSelected } : task)))
+  }
+
+  function handleConfirm() {
+    if (schedulableSelected.length === 0) {
       return
     }
 
-    selected.forEach((task) => {
+    const confirmedPlant = onConfirm()
+    const confirmedPlantId = confirmedPlant?.id ?? plantId
+
+    schedulableSelected.forEach(({ task, date }) => {
+      if (date === null) return
+
       addTask({
         season,
-        date: getScheduleDate(season, startOffset, task.dayOffset),
+        date,
         type: task.calendarType,
         title: `${plantName} ${task.title}`,
+        plantId: confirmedPlantId,
         plantKind,
         time: task.time,
       })
     })
-    selectDate(getScheduleDate(season, startOffset, selected[0].dayOffset))
+    const firstDate = schedulableSelected[0].date
+    if (firstDate !== null) selectDate(firstDate)
     setDone(true)
-    onConfirm()
   }
-
-  const startLabel = START_OPTIONS.find((option) => option.offset === startOffset)?.label ?? START_OPTIONS[0].label
-  const sub = `AI가 ${plantName}에게 추천한 관리 일정이에요. 등록할 항목만 선택하세요.`
 
   return (
     <div className="cal-overlay" onClick={done ? undefined : onClose}>
-      <div className="cal-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="cal-modal" onClick={(event) => event.stopPropagation()}>
         {done ? (
           <div className="cal-success">
             <span className="badge-ok"><Icon name="check" /></span>
             <h2>캘린더에 등록되었어요</h2>
             <p>
-              {selected.length}개의 관리 일정이 <b>{startLabel}</b> 추가되었어요.<br />
+              {schedulableSelected.length}개의 관리 일정이 <b>{startLabel}</b> 추가되었어요.<br />
               캘린더에서 물주기와 상태 확인 일정을 볼 수 있어요.
             </p>
             <div className="reg-actions">
@@ -147,24 +168,24 @@ function CalRegisterModalContent({
               </select>
             </div>
 
-            <div className="cal-list-label">추천 일정 {tasks.length}개</div>
+            <div className="cal-list-label">추천 일정 {scheduleTasks.length}개</div>
             <div className="cal-list">
-              {tasks.map((t) => (
-                <div className={`cal-item ${t.on ? '' : 'off'}`} key={t.id}>
-                  <span className="ic"><Icon name={t.type} /></span>
+              {taskRows.map(({ task, date }) => (
+                <div className={`cal-item ${task.on ? '' : 'off'}`} key={task.id}>
+                  <span className="ic"><Icon name={task.type} /></span>
                   <div className="copy">
-                    <div className="t">{t.title}</div>
-                    <div className="d">{t.detail} · {t.when}</div>
+                    <div className="t">{task.title}</div>
+                    <div className="d">{task.detail} · {date === null ? '이번 달 범위 밖' : task.when}</div>
                   </div>
-                  <CalToggle checked={t.on} onChange={(v) => toggle(t.id, v)} />
+                  <CalToggle checked={task.on} onChange={(isSelected) => handleTaskToggle(task.id, isSelected)} />
                 </div>
               ))}
             </div>
 
-            <div className="cal-count">선택한 <b>{selected.length}개</b> 일정을 캘린더에 등록합니다.</div>
+            <div className="cal-count">선택한 <b>{selectedTasks.length}개</b> 중 <b>{schedulableSelected.length}개</b> 일정을 캘린더에 등록합니다.</div>
             <div className="cal-foot">
               <button className="btn-ghost" type="button" onClick={onClose}>나중에 할게요</button>
-              <button className="btn-primary" type="button" onClick={confirm} disabled={selected.length === 0}>
+              <button className="btn-primary" type="button" onClick={handleConfirm} disabled={schedulableSelected.length === 0}>
                 <Icon name="calendar" />캘린더에 등록
               </button>
             </div>

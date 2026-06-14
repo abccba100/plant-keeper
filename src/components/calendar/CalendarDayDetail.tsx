@@ -1,6 +1,6 @@
 import { useState, type CSSProperties, type FormEvent } from 'react'
-import { getPlantMoisture, seasonMeta, type CalendarDay, type Season } from '../../store/calendarData'
-import { plants as defaultPlants, type Plant, type PlantKind } from '../../store/plantData'
+import { getPlantMoisture, getSeasonMonthLabel, seasonMeta, type CalendarDay, type Season } from '../../store/calendarData'
+import { plants as defaultPlants, type Plant, type PlantId } from '../../store/plantData'
 import { useCalendarStore } from '../../store/calendarStore'
 import { usePlantStore } from '../../store/plantStore'
 import {
@@ -56,7 +56,7 @@ export function RightRail({ season }: { season: Season }) {
       <RailCard>
         <h2>식물 목록</h2>
         {visiblePlants.map((plant) => (
-          <PlantLine key={`${plant.kind}-${plant.name}`} style={{ '--tone': plant.tone } as CSSProperties}>
+          <PlantLine key={plant.id} style={{ '--tone': plant.tone } as CSSProperties}>
             <PlantAvatar plant={plant} />
             <span>{plant.name}</span>
             <i />
@@ -67,7 +67,7 @@ export function RightRail({ season }: { season: Season }) {
       <RailCard>
         <h2>이번 달 요약</h2>
         {visiblePlants.map((plant) => (
-          <PlantLine key={`summary-${plant.kind}-${plant.name}`} style={{ '--tone': plant.tone } as CSSProperties}>
+          <PlantLine key={`summary-${plant.id}`} style={{ '--tone': plant.tone } as CSSProperties}>
             <PlantAvatar plant={plant} />
             <span>{plant.name}</span>
             <span>-</span>
@@ -98,13 +98,18 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
   const availablePlants = plants.length > 0 ? plants : defaultPlants
   const [taskValue, setTaskValue] = useState<TaskComposerValue>('watering')
   const [customTaskTitle, setCustomTaskTitle] = useState('')
-  const [selectedPlantKind, setSelectedPlantKind] = useState<PlantKind>(day.plants[0]?.kind ?? availablePlants[0].kind)
+  const [selectedPlantId, setSelectedPlantId] = useState<PlantId>(day.plants[0]?.id ?? availablePlants[0].id)
   const completedWatering = day.tasks.some((task) => task.type === 'watering' && task.completed)
   const selectedTaskOption = taskComposerOptions.find((option) => option.value === taskValue) ?? taskComposerOptions[0]
+  const effectiveSelectedPlantId = availablePlants.some((plant) => plant.id === selectedPlantId)
+    ? selectedPlantId
+    : day.plants[0]?.id ?? availablePlants[0].id
+  const selectedPlant = availablePlants.find((plant) => plant.id === effectiveSelectedPlantId) ?? availablePlants[0]
   const isManualTask = taskValue === 'manual'
   const trimmedCustomTaskTitle = customTaskTitle.trim()
   const canAddTask = !isManualTask || trimmedCustomTaskTitle.length > 0
   const memo = savedMemo ?? '새 잎이 많이 올라오고 있어요. 창가 쪽으로 위치를 옮겨줬어요.'
+  const monthLabel = getSeasonMonthLabel(season)
 
   function handleAddTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -118,7 +123,8 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
       date: day.date,
       type: selectedTaskOption.calendarType,
       title: isManualTask ? trimmedCustomTaskTitle : selectedTaskOption.title,
-      plantKind: selectedPlantKind,
+      plantId: selectedPlant.id,
+      plantKind: selectedPlant.kind,
       time: selectedTaskOption.time,
     })
 
@@ -133,7 +139,7 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
         ×
       </DetailClose>
       <h2>
-        {seasonMeta[season].month} {day.date}일
+        {monthLabel} {day.date}일
       </h2>
       <SeasonLine season={season}>
         <span />
@@ -162,11 +168,11 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
           </TaskSelect>
           <TaskSelect
             aria-label="일정을 추가할 식물 선택"
-            value={selectedPlantKind}
-            onChange={(event) => setSelectedPlantKind(event.target.value as PlantKind)}
+            value={effectiveSelectedPlantId}
+            onChange={(event) => setSelectedPlantId(event.target.value)}
           >
             {availablePlants.map((plant) => (
-              <option key={`${plant.kind}-${plant.name}`} value={plant.kind}>
+              <option key={plant.id} value={plant.id}>
                 {plant.name}
               </option>
             ))}
@@ -207,7 +213,7 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
       <DetailSection>
         <h3>이 날의 식물 상태</h3>
         {day.plants.map((plant) => (
-          <DetailPlant key={`detail-line-${plant.name}`} data-detail-plant-row={plant.kind} style={{ '--tone': plant.tone } as CSSProperties}>
+          <DetailPlant key={`detail-line-${plant.id}`} data-detail-plant-row={plant.kind} style={{ '--tone': plant.tone } as CSSProperties}>
             <PlantAvatar plant={plant} />
             <span>{plant.name}</span>
             <i />
