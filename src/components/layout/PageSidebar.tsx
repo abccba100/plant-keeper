@@ -13,9 +13,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { icon: 'scan',     label: '식물 판별',      path: '/register'  },
+  { icon: 'home',    label: '오늘의 관리',      path: '/'          },
+  { icon: 'calendar',label: '관리 캘린더',      path: '/calendar'  },
+  { icon: 'scan',    label: '식물 판별',        path: '/register'  },
   { icon: 'search',  label: '식물 상태 분석',   path: '/analyze'   },
-  { icon: 'calendar',label: '관리 캘린더',      path: '/'          },
 ]
 
 interface Props {

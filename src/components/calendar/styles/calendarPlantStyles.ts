@@ -220,9 +220,16 @@ export const PlantLine = styled.div`
   grid-template-columns: 28px 1fr 8px;
   align-items: center;
   gap: 11px;
+  min-width: 0;
   min-height: 43px;
-  font-size: 13px;
+  font-size: 13.5px;
   white-space: nowrap;
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   i {
     width: 8px;

@@ -3,15 +3,15 @@
    ============================================================ */
 
 /* ---------- step 1 · 정보 입력 ---------- */
-.an-form { display: flex; flex-direction: column; gap: 20px; }
-.field { display: flex; flex-direction: column; gap: 9px; }
-.field-label { display: flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.an-form { display: flex; flex-direction: column; gap: 22px; }
+.field { display: flex; flex-direction: column; gap: 10px; }
+.field-label { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 800; color: var(--ink); }
 .field-label .req { color: var(--accent-deep); }
 .field-label .hint { margin-left: auto; font-size: 12px; font-weight: 400; color: var(--ink-soft); }
 .an-input {
-  height: 46px; padding: 0 15px; width: 100%;
+  height: 48px; padding: 0 15px; width: 100%;
   border: 1px solid var(--control-line); border-radius: var(--r-control);
-  background: rgba(255,255,255,0.78); font-family: inherit; font-size: 15px; color: var(--ink);
+  background: rgba(255,255,255,0.82); font-family: inherit; font-size: 15px; color: var(--ink);
   transition: border-color 0.16s, box-shadow 0.16s;
 }
 .an-input::placeholder { color: color-mix(in srgb, var(--ink-soft) 70%, transparent); }
@@ -19,20 +19,20 @@
 
 .suggest-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
-  display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px;
+  display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px;
   border: 1px solid var(--control-line); border-radius: 999px;
   background: rgba(255,255,255,0.62); color: #2c332b;
-  font-family: inherit; font-size: 13px; cursor: pointer; white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: inherit; font-size: 13.5px; cursor: pointer; white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
 }
-.chip:hover { background: #fff; }
+.chip:hover { background: #fff; transform: translateY(-1px); }
 .chip .pa { width: 22px; height: 28px; }
 .chip.on {
   background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, transparent);
   color: var(--accent-deep); font-weight: 600;
 }
 
-.dropzone.compact { min-height: 210px; gap: 11px; padding: 22px; }
+.dropzone.compact { min-height: 220px; gap: 12px; padding: 24px; }
 .dropzone.compact .dz-illus { width: 78px; height: 78px; }
 .dropzone.compact .dz-title { font-size: 14.5px; }
 .dropzone.filled {
@@ -41,21 +41,22 @@
 }
 
 /* ---------- step 2 · AI 추가 질문 ---------- */
-.qa-progress { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; font-size: 12.5px; color: var(--ink-soft); }
+.qa-progress { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; color: var(--ink-soft); }
 .qa-progress .bar { flex: 1 1 auto; height: 5px; border-radius: 999px; background: var(--control-line); overflow: hidden; }
 .qa-progress .bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--accent-deep)); transition: width 0.45s cubic-bezier(0.22,1,0.36,1); }
 .qa-progress .count { font-weight: 600; color: var(--accent-deep); white-space: nowrap; }
 
-.qa-stream { display: flex; flex-direction: column; gap: 16px; }
+.qa-stream { display: flex; flex-direction: column; gap: 18px; }
 .ai-row { display: grid; grid-template-columns: 36px 1fr; gap: 11px; align-items: start; animation: qa-in 0.4s cubic-bezier(0.22,1,0.36,1); }
 @keyframes qa-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .ai-avatar { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--accent-soft); color: var(--accent-deep); }
 .ai-avatar svg { width: 19px; height: 19px; }
 .ai-body { min-width: 0; }
 .ai-bubble {
-  display: inline-block; padding: 12px 16px; border-radius: 4px 14px 14px 14px;
-  background: rgba(255,255,255,0.74); border: 1px solid var(--control-line);
+  display: inline-block; padding: 13px 16px; border-radius: 4px 14px 14px 14px;
+  background: rgba(255,255,255,0.78); border: 1px solid var(--control-line);
   font-size: 14px; line-height: 1.6; color: var(--ink);
+  box-shadow: 0 10px 22px rgba(58,52,42,0.055);
 }
 .ai-bubble .q-sub { display: block; margin-top: 3px; font-size: 12px; color: var(--ink-soft); }
 .opt-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
@@ -87,14 +88,14 @@
 .qa-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 
 /* ---------- step 3 · 진단 결과 ---------- */
-.diag-summary { display: grid; grid-template-columns: 132px 1fr; gap: 22px; align-items: center; }
-.health-gauge { position: relative; width: 132px; height: 132px; }
+.diag-summary { display: grid; grid-template-columns: 140px 1fr; gap: 24px; align-items: center; }
+.health-gauge { position: relative; width: 140px; height: 140px; }
 .health-gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .health-gauge .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .health-gauge .score { font-size: 34px; font-weight: 700; line-height: 1; color: var(--ink); }
 .health-gauge .score small { font-size: 14px; font-weight: 600; color: var(--ink-soft); }
 .health-gauge .unit { font-size: 11px; color: var(--ink-soft); margin-top: 3px; }
-.summary-copy h2 { margin: 0 0 4px; font-size: 21px; font-weight: 700; letter-spacing: -0.3px; }
+.summary-copy h2 { margin: 0 0 6px; font-size: 22px; font-weight: 800; letter-spacing: 0; }
 .summary-copy .grade-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
 .grade-badge.ok { background: rgba(95,142,98,0.16); color: #46703f; }
 .grade-badge.warn { background: rgba(191,123,47,0.16); color: #95591f; }
@@ -102,7 +103,7 @@
 .summary-copy p { margin: 10px 0 0; font-size: 13.5px; line-height: 1.75; color: #3c443b; max-width: 48ch; }
 
 .diag-issues { display: flex; flex-direction: column; gap: 11px; }
-.issue-row { display: grid; grid-template-columns: 40px 1fr auto; gap: 13px; align-items: start; padding: 15px 16px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,0.55); }
+.issue-row { display: grid; grid-template-columns: 40px 1fr auto; gap: 13px; align-items: start; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-panel); background: rgba(255,255,255,0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.56); }
 .issue-ic { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 11px; background: rgba(191,123,47,0.13); color: #95591f; }
 .issue-ic.ok { background: var(--accent-soft); color: var(--accent-deep); }
 .issue-ic svg { width: 20px; height: 20px; }
@@ -121,7 +122,7 @@
 .solution-step .sd { margin-top: 4px; font-size: 12.5px; line-height: 1.7; color: #4a524a; }
 
 .sched-preview { display: flex; flex-direction: column; gap: 9px; margin-top: 4px; }
-.sched-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.55); }
+.sched-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center; padding: 13px 14px; border: 1px solid var(--line); border-radius: var(--r-panel); background: rgba(255,255,255,0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.56); }
 .sched-ic { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--accent-soft); color: var(--accent-deep); }
 .sched-ic svg { width: 18px; height: 18px; }
 .sched-copy .t { font-size: 13.5px; font-weight: 600; }
@@ -152,13 +153,13 @@
 .cal-head { display: grid; grid-template-columns: 46px 1fr; gap: 13px; align-items: start; padding: 24px 24px 16px; }
 .cal-head .ic { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 13px; background: var(--accent-soft); color: var(--accent-deep); }
 .cal-head .ic svg { width: 23px; height: 23px; }
-.cal-head h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.cal-head h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0; }
 .cal-head p { margin: 5px 0 0; font-size: 13px; line-height: 1.6; color: var(--ink-soft); }
 .cal-close { position: absolute; top: 18px; right: 18px; width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--control-line); border-radius: 9px; background: rgba(255,255,255,0.7); color: var(--ink-soft); cursor: pointer; }
 .cal-close:hover { background: #fff; }
 .cal-close svg { width: 15px; height: 15px; }
 
-.cal-startrow { display: flex; align-items: center; gap: 10px; margin: 0 24px 12px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.5); }
+.cal-startrow { display: flex; align-items: center; gap: 10px; margin: 0 24px 12px; padding: 11px 14px; border: 1px solid var(--line); border-radius: var(--r-panel); background: rgba(255,255,255,0.5); }
 .cal-startrow .lbl { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); }
 .cal-startrow .lbl svg { width: 16px; height: 16px; color: var(--accent-deep); }
 .cal-startrow select { margin-left: auto; height: 34px; padding: 0 10px; border: 1px solid var(--control-line); border-radius: 9px; background: rgba(255,255,255,0.85); font-family: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
@@ -167,7 +168,7 @@
 .cal-list-label { padding: 4px 24px 2px; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
 .cal-item {
   display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; align-items: center;
-  padding: 12px 14px; border: 1px solid var(--line); border-radius: 13px;
+  padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-panel);
   background: rgba(255,255,255,0.55); transition: opacity 0.18s, background 0.18s;
 }
 .cal-item.off { opacity: 0.5; }
@@ -266,4 +267,50 @@ html[data-theme='night'] .cal-modal {
 
 html[data-theme='night'] .switch .thumb {
   background: #dbe7ff;
+}
+
+@media (max-width: 720px) {
+  .field-label {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .field-label .hint {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .diag-summary,
+  .issue-row,
+  .sched-row,
+  .cal-item,
+  .cal-startrow,
+  .cal-foot {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .diag-summary {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .issue-row,
+  .sched-row {
+    align-items: stretch;
+  }
+
+  .sev,
+  .sched-when {
+    justify-self: start;
+  }
+
+  .qa-foot,
+  .diag-cta,
+  .cal-foot {
+    flex-direction: column;
+  }
+
+  .user-answer .bub {
+    max-width: 100%;
+  }
 }

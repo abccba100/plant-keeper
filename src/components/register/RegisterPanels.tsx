@@ -223,7 +223,7 @@ export function FlowCard({
           <button className="btn-ghost" type="button" onClick={onReset}>
             <Icon name="plus" />다른 식물 등록
           </button>
-          <button className="btn-primary" type="button" onClick={() => navigate('/')}>
+          <button className="btn-primary" type="button" onClick={() => navigate('/calendar')}>
             <Icon name="calendar" />캘린더로 이동
           </button>
         </div>

@@ -1,9 +1,13 @@
 import { lazy, Suspense, useState, useEffect } from 'react'
-import { CalendarPage } from './calendar/CalendarPage'
 import { useThemeStore } from '../store/themeStore'
 
-// Non-calendar pages are lazy-loaded — they're not needed on the initial `/` route.
-// Each dynamic import creates a separate chunk that's only fetched when navigated to.
+// All pages are lazy-loaded for separate code-split chunks.
+const HomePage = lazy(() =>
+  import('./home/HomePage').then((m) => ({ default: m.HomePage }))
+)
+const CalendarPage = lazy(() =>
+  import('./calendar/CalendarPage').then((m) => ({ default: m.CalendarPage }))
+)
 const RegisterPage = lazy(() =>
   import('./register/RegisterPage').then((m) => ({ default: m.RegisterPage }))
 )
@@ -49,7 +53,7 @@ function getPath() {
 }
 
 function isKnownPath(pathname: string) {
-  return pathname === '/' || pathname === '/register' || pathname === '/analyze'
+  return pathname === '/' || pathname === '/calendar' || pathname === '/register' || pathname === '/analyze'
 }
 
 export function Router() {
@@ -69,6 +73,12 @@ export function Router() {
 
   const routePath = isKnownPath(pathname) ? pathname : '/'
 
+  if (routePath === '/calendar')
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <CalendarPage />
+      </Suspense>
+    )
   if (routePath === '/register')
     return (
       <Suspense fallback={<PageFallback />}>
@@ -82,5 +92,9 @@ export function Router() {
       </Suspense>
     )
 
-  return <CalendarPage />
+  return (
+    <Suspense fallback={<PageFallback />}>
+      <HomePage />
+    </Suspense>
+  )
 }

@@ -13,11 +13,13 @@ import { FlowCard, RegRail } from '../../components/register/RegisterPanels'
 import { SPECIES_BY_FILE, STEPS, pickSpecies, stepIndexFor, type RegisterState, type Species } from '../../store/registerModel'
 import { getPlantTone } from '../../store/plantData'
 import { usePlantStore } from '../../store/plantStore'
+import { analyzePlantImage } from '../../services/groqPlantAi'
 export function RegisterPage() {
   const [state, setState] = useState<RegisterState>('idle')
   const [modal, setModal] = useState(false)
   const [toast, setToast] = useState(false)
   const [fileUrl, setFileUrl] = useState<string>()
+  const [selectedFile, setSelectedFile] = useState<File>()
   const [fileName, setFileName] = useState<string>()
   const [species, setSpecies] = useState<Species>(SPECIES_BY_FILE[0])
   const [error, setError] = useState<string>()
@@ -43,14 +45,38 @@ export function RegisterPage() {
 
     setError(undefined)
     setFileUrl((oldUrl) => replaceObjectUrl(oldUrl, file))
+    setSelectedFile(file)
     setFileName(file.name)
     setSpecies(pickSpecies(file.name))
     setState('preview')
   }
 
-  function analyze() {
+  async function analyze() {
+    if (!selectedFile) {
+      setError('분석할 이미지를 먼저 선택해 주세요.')
+      return
+    }
+
     setState('analyzing')
-    window.setTimeout(() => setState('result'), 1200)
+
+    try {
+      const result = await analyzePlantImage({ imageFile: selectedFile, mode: 'identify' })
+
+      setSpecies({
+        name: result.plantName,
+        latin: result.latinName,
+        kind: result.plantKind,
+        difficulty: result.difficulty,
+        difficultyLabel: result.difficultyLabel,
+        confidence: result.confidence,
+        care: result.care,
+      })
+      setError(undefined)
+      setState('result')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'AI 분석에 실패했습니다.')
+      setState('preview')
+    }
   }
 
   function confirmRegister() {
@@ -72,6 +98,7 @@ export function RegisterPage() {
     setModal(false)
     setToast(false)
     setFileUrl(undefined)
+    setSelectedFile(undefined)
     setFileName(undefined)
     setSpecies(SPECIES_BY_FILE[0])
     setError(undefined)

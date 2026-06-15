@@ -12,17 +12,20 @@ import { AnalyzingCard, AnalyzeRail, DiagnosisCards, InputCard, QuestionsCard } 
 import { AN_STEPS, NO_SYMPTOM, QUESTIONS, anStepIndex, createDiagnosis, type AnalyzeState, type Answers, type PlantOption, type Question } from '../../store/analyzeModel'
 import { getPlantTone, type PlantKind } from '../../store/plantData'
 import { usePlantStore } from '../../store/plantStore'
+import { analyzePlantImage } from '../../services/groqPlantAi'
 export function AnalyzePage() {
   const [state, setState] = useState<AnalyzeState>('input')
   const [plant, setPlant] = useState<PlantOption | null>(null)
   const [plantName, setPlantName] = useState('')
   const [photoUrl, setPhotoUrl] = useState<string>()
+  const [photoFile, setPhotoFile] = useState<File>()
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Answers>({})
+  const [aiDiagnosis, setAiDiagnosis] = useState<ReturnType<typeof createDiagnosis>>()
   const [modal, setModal] = useState(false)
   const [error, setError] = useState<string>()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const diagnosis = useMemo(() => createDiagnosis(answers), [answers])
+  const diagnosis = useMemo(() => aiDiagnosis ?? createDiagnosis(answers), [aiDiagnosis, answers])
   const addPlant = usePlantStore((store) => store.addPlant)
   const selectedPlantKind: PlantKind = plant?.kind ?? 'monstera'
   const selectedPlantName = plantName.trim() || '내 식물'
@@ -43,6 +46,7 @@ export function AnalyzePage() {
     }
 
     setError(undefined)
+    setPhotoFile(file)
     setPhotoUrl((oldUrl) => replaceObjectUrl(oldUrl, file))
   }
 
@@ -64,25 +68,49 @@ export function AnalyzePage() {
     })
   }
 
-  function goToNextQuestion() {
+  async function goToNextQuestion() {
     if (step < QUESTIONS.length - 1) {
       setStep((currentStep) => currentStep + 1)
       return
     }
+
+    if (!photoFile) {
+      setError('분석할 이미지를 먼저 선택해 주세요.')
+      setState('input')
+      return
+    }
+
     setState('analyzing')
-    window.setTimeout(() => setState('result'), 1200)
+
+    try {
+      const result = await analyzePlantImage({
+        imageFile: photoFile,
+        mode: 'diagnose',
+        plantName: plantName.trim(),
+        answers,
+      })
+
+      setAiDiagnosis(result.diagnosis ?? createDiagnosis(answers))
+      setError(undefined)
+      setState('result')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'AI 분석에 실패했습니다.')
+      setState('questions')
+    }
   }
 
   function startDiagnosis() {
     setState('questions')
     setStep(0)
     setAnswers({})
+    setAiDiagnosis(undefined)
   }
 
   function retryDiagnosis() {
     setState('input')
     setStep(0)
     setAnswers({})
+    setAiDiagnosis(undefined)
     setModal(false)
   }
 

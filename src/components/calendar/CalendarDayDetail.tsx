@@ -1,5 +1,5 @@
 import { useState, type CSSProperties, type FormEvent } from 'react'
-import { getPlantMoisture, getSeasonMonthLabel, seasonMeta, type CalendarDay, type Season } from '../../store/calendarData'
+import { getPlantMoisture, seasonMeta, type CalendarDay, type Season } from '../../store/calendarData'
 import { plants as defaultPlants, type Plant, type PlantId } from '../../store/plantData'
 import { useCalendarStore } from '../../store/calendarStore'
 import { usePlantStore } from '../../store/plantStore'
@@ -91,7 +91,7 @@ export function RightRail({ season }: { season: Season }) {
 export function DayDetail({ season, day, onClose }: { season: Season; day: CalendarDay; onClose: () => void }) {
   const addTask = useCalendarStore((state) => state.addTask)
   const completeTask = useCalendarStore((state) => state.completeTask)
-  const savedMemo = useCalendarStore((state) => state.memosByDate[`${season}-${day.date}`])
+  const savedMemo = useCalendarStore((state) => state.memosByDate[day.dateKey])
   const setMemo = useCalendarStore((state) => state.setMemo)
   const lastCompletedTaskId = useCalendarStore((state) => state.lastCompletedTaskId)
   const plants = usePlantStore((state) => state.plants)
@@ -109,7 +109,7 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
   const trimmedCustomTaskTitle = customTaskTitle.trim()
   const canAddTask = !isManualTask || trimmedCustomTaskTitle.length > 0
   const memo = savedMemo ?? '새 잎이 많이 올라오고 있어요. 창가 쪽으로 위치를 옮겨줬어요.'
-  const monthLabel = getSeasonMonthLabel(season)
+  const monthLabel = `${day.year}년 ${day.monthIndex + 1}월`
 
   function handleAddTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -119,7 +119,8 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
     }
 
     addTask({
-      season,
+      year: day.year,
+      monthIndex: day.monthIndex,
       date: day.date,
       type: selectedTaskOption.calendarType,
       title: isManualTask ? trimmedCustomTaskTitle : selectedTaskOption.title,
@@ -230,7 +231,7 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
           aria-label="날짜 메모"
           value={memo}
           placeholder="오늘 식물 상태나 관리 내용을 적어두세요."
-          onChange={(event) => setMemo(season, day.date, event.target.value)}
+          onChange={(event) => setMemo(day.year, day.monthIndex, day.date, event.target.value)}
         />
       </DetailSection>
     </DetailPanel>

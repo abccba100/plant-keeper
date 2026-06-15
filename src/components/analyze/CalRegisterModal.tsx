@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useCalendarStore } from '../../store/calendarStore'
-import { getSeasonCalendarInfo, type Season } from '../../store/calendarData'
 import type { Plant, PlantId, PlantKind } from '../../store/plantData'
 import { navigate } from '../../api/navigation'
 import { Icon } from '../common/Icon'
@@ -43,15 +42,22 @@ interface ModalContentProps {
   onConfirm: () => Plant | undefined | void
 }
 
-function getScheduleDate(season: Season, baseOffset: number, taskOffset: number) {
-  const calendarInfo = getSeasonCalendarInfo(season)
-  const scheduledDate = new Date(calendarInfo.year, calendarInfo.monthIndex, calendarInfo.selectedDate + baseOffset + taskOffset)
+type ScheduleDate = {
+  year: number
+  monthIndex: number
+  date: number
+  label: string
+}
 
-  if (scheduledDate.getFullYear() !== calendarInfo.year || scheduledDate.getMonth() !== calendarInfo.monthIndex) {
-    return null
+function getScheduleDate(year: number, monthIndex: number, selectedDate: number, baseOffset: number, taskOffset: number): ScheduleDate {
+  const scheduledDate = new Date(year, monthIndex, selectedDate + baseOffset + taskOffset)
+
+  return {
+    year: scheduledDate.getFullYear(),
+    monthIndex: scheduledDate.getMonth(),
+    date: scheduledDate.getDate(),
+    label: `${scheduledDate.getMonth() + 1}월 ${scheduledDate.getDate()}일`,
   }
-
-  return scheduledDate.getDate()
 }
 
 export function CalRegisterModal({
@@ -89,16 +95,21 @@ function CalRegisterModalContent({
   onClose,
   onConfirm,
 }: ModalContentProps) {
-  const season = useCalendarStore((state) => state.season)
+  const visibleYear = useCalendarStore((state) => state.visibleYear)
+  const visibleMonthIndex = useCalendarStore((state) => state.visibleMonthIndex)
+  const selectedDate = useCalendarStore((state) => state.selectedDate)
   const addTask = useCalendarStore((state) => state.addTask)
-  const selectDate = useCalendarStore((state) => state.selectDate)
+  const selectCalendarDate = useCalendarStore((state) => state.selectCalendarDate)
   const [scheduleTasks, setScheduleTasks] = useState(() => SCHEDULE_PRESETS[preset].map((task) => ({ ...task })))
   const [startOffset, setStartOffset] = useState(START_OPTIONS[0].offset)
   const [done, setDone] = useState(false)
 
   const selectedTasks = scheduleTasks.filter((task) => task.on)
-  const taskRows = scheduleTasks.map((task) => ({ task, date: getScheduleDate(season, startOffset, task.dayOffset) }))
-  const schedulableSelected = taskRows.filter((row) => row.task.on && row.date !== null)
+  const taskRows = scheduleTasks.map((task) => ({
+    task,
+    scheduleDate: getScheduleDate(visibleYear, visibleMonthIndex, selectedDate, startOffset, task.dayOffset),
+  }))
+  const selectedScheduleRows = taskRows.filter((row) => row.task.on)
   const startLabel = START_OPTIONS.find((option) => option.offset === startOffset)?.label ?? START_OPTIONS[0].label
   const sub = `AI가 ${plantName}에게 추천한 관리 일정이에요. 등록할 항목만 선택하세요.`
 
@@ -107,19 +118,18 @@ function CalRegisterModalContent({
   }
 
   function handleConfirm() {
-    if (schedulableSelected.length === 0) {
+    if (selectedScheduleRows.length === 0) {
       return
     }
 
     const confirmedPlant = onConfirm()
     const confirmedPlantId = confirmedPlant?.id ?? plantId
 
-    schedulableSelected.forEach(({ task, date }) => {
-      if (date === null) return
-
+    selectedScheduleRows.forEach(({ task, scheduleDate }) => {
       addTask({
-        season,
-        date,
+        year: scheduleDate.year,
+        monthIndex: scheduleDate.monthIndex,
+        date: scheduleDate.date,
         type: task.calendarType,
         title: `${plantName} ${task.title}`,
         plantId: confirmedPlantId,
@@ -127,8 +137,8 @@ function CalRegisterModalContent({
         time: task.time,
       })
     })
-    const firstDate = schedulableSelected[0].date
-    if (firstDate !== null) selectDate(firstDate)
+    const firstDate = selectedScheduleRows[0].scheduleDate
+    selectCalendarDate(firstDate.year, firstDate.monthIndex, firstDate.date)
     setDone(true)
   }
 
@@ -140,12 +150,12 @@ function CalRegisterModalContent({
             <span className="badge-ok"><Icon name="check" /></span>
             <h2>캘린더에 등록되었어요</h2>
             <p>
-              {schedulableSelected.length}개의 관리 일정이 <b>{startLabel}</b> 추가되었어요.<br />
+              {selectedScheduleRows.length}개의 관리 일정이 <b>{startLabel}</b> 추가되었어요.<br />
               캘린더에서 물주기와 상태 확인 일정을 볼 수 있어요.
             </p>
             <div className="reg-actions">
               <button className="btn-ghost" type="button" onClick={onClose}><Icon name="x" />닫기</button>
-              <button className="btn-primary" type="button" onClick={() => navigate('/')}>
+              <button className="btn-primary" type="button" onClick={() => navigate('/calendar')}>
                 <Icon name="calendar" />캘린더로 이동
               </button>
             </div>
@@ -170,22 +180,22 @@ function CalRegisterModalContent({
 
             <div className="cal-list-label">추천 일정 {scheduleTasks.length}개</div>
             <div className="cal-list">
-              {taskRows.map(({ task, date }) => (
+              {taskRows.map(({ task, scheduleDate }) => (
                 <div className={`cal-item ${task.on ? '' : 'off'}`} key={task.id}>
                   <span className="ic"><Icon name={task.type} /></span>
                   <div className="copy">
                     <div className="t">{task.title}</div>
-                    <div className="d">{task.detail} · {date === null ? '이번 달 범위 밖' : task.when}</div>
+                    <div className="d">{task.detail} · {scheduleDate.label} {task.when}</div>
                   </div>
                   <CalToggle checked={task.on} onChange={(isSelected) => handleTaskToggle(task.id, isSelected)} />
                 </div>
               ))}
             </div>
 
-            <div className="cal-count">선택한 <b>{selectedTasks.length}개</b> 중 <b>{schedulableSelected.length}개</b> 일정을 캘린더에 등록합니다.</div>
+            <div className="cal-count">선택한 <b>{selectedTasks.length}개</b> 일정을 캘린더에 등록합니다.</div>
             <div className="cal-foot">
               <button className="btn-ghost" type="button" onClick={onClose}>나중에 할게요</button>
-              <button className="btn-primary" type="button" onClick={handleConfirm} disabled={schedulableSelected.length === 0}>
+              <button className="btn-primary" type="button" onClick={handleConfirm} disabled={selectedScheduleRows.length === 0}>
                 <Icon name="calendar" />캘린더에 등록
               </button>
             </div>

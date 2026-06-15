@@ -4,7 +4,7 @@ export type IconName =
   | 'upload' | 'scan' | 'clock' | 'pen' | 'search' | 'users' | 'calendar'
   | 'list' | 'grid' | 'chevL' | 'chevR' | 'caret' | 'leaf' | 'sun'
   | 'maple' | 'snow' | 'plus' | 'x' | 'edit' | 'drop' | 'check'
-  | 'refresh' | 'image' | 'camera' | 'sprout' | 'info' | 'bulb' | 'thermo' | 'moon'
+  | 'refresh' | 'image' | 'camera' | 'sprout' | 'info' | 'bulb' | 'thermo' | 'moon' | 'home'
 
 const p = {
   fill: 'none' as const,
@@ -44,6 +44,7 @@ const paths: Record<IconName, React.ReactNode> = {
   bulb: <><path d="M9 18h6M10 21h4" {...p} /><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1.1 1.2 1.3 2.2h4.6c.2-1 .7-1.7 1.3-2.2A6 6 0 0 0 12 3z" {...p} /></>,
   thermo: <><path d="M14 14.5V5a2 2 0 0 0-4 0v9.5a4 4 0 1 0 4 0z" {...p} /></>,
   moon: <><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 7.2 7.2 0 1 0 20 15.5z" {...p} /></>,
+  home: <><path d="M3 11L12 3l9 8v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9z" {...p} /><path d="M9 21V13h6v8" {...p} /></>,
 }
 
 export function Icon({ name, ...rest }: { name: IconName } & SVGProps<SVGSVGElement>) {

@@ -3,14 +3,15 @@ import type { DayCellContentArg } from '@fullcalendar/core'
 import type { DateClickArg } from '@fullcalendar/interaction'
 import FullCalendar from '@fullcalendar/react'
 import {
+  getCalendarMonthInfo,
   getCalendarDays,
   getPlantMoisture,
-  getDefaultSelectedDateBySeason,
-  getSeasonCalendarInfo,
   seasonMeta,
   seasonOrder,
   weekdays,
   type CalendarDay,
+  type CalendarMonth,
+  type CalendarMonthInfo,
   type CalendarMoisture,
   type CalendarTask,
   type Season,
@@ -29,8 +30,8 @@ import {
   PageFloater,
   Workspace,
   CalendarArea,
-  SeasonChangeOverlay,
   TopBar,
+  TopBarTitle,
   IconControls,
   IconButton,
   Toolbar,
@@ -64,7 +65,7 @@ import { CanopyAtmosphere } from './atmosphere/CanopyAtmosphere'
 import { DayDetail, RightRail } from './CalendarDayDetail'
 import {
   fullCalendarPlugins,
-  getFullCalendarSeasonConfig,
+  getFullCalendarMonthConfig,
   getBaseMoisture,
   getCellPlantSlot,
   getFullCalendarDay,
@@ -75,11 +76,21 @@ import {
 
 export function CalendarExperience() {
   const season = useCalendarStore((state) => state.season)
+  const visibleYear = useCalendarStore((state) => state.visibleYear)
+  const visibleMonthIndex = useCalendarStore((state) => state.visibleMonthIndex)
   const selectedDate = useCalendarStore((state) => state.selectedDate)
   const completedTaskIds = useCalendarStore((state) => state.completedTaskIds)
   const userTasksByDate = useCalendarStore((state) => state.userTasksByDate)
   const plants = usePlantStore((state) => state.plants)
-  const days = useMemo(() => getCalendarDays(season, selectedDate, completedTaskIds, userTasksByDate, plants), [completedTaskIds, plants, season, selectedDate, userTasksByDate])
+  const visibleMonth = useMemo(
+    () => ({ year: visibleYear, monthIndex: visibleMonthIndex }),
+    [visibleMonthIndex, visibleYear],
+  )
+  const calendarInfo = useMemo(() => getCalendarMonthInfo(visibleMonth, selectedDate), [selectedDate, visibleMonth])
+  const days = useMemo(
+    () => getCalendarDays(visibleMonth, calendarInfo.selectedDate, completedTaskIds, userTasksByDate, plants),
+    [calendarInfo.selectedDate, completedTaskIds, plants, userTasksByDate, visibleMonth],
+  )
 
   return (
     <Shell season={season}>
@@ -89,9 +100,9 @@ export function CalendarExperience() {
       <PageSubBranch season={season} data-calendar-decor="page-sub" aria-hidden="true" />
       <PageMascot season={season} data-calendar-decor="page-mascot" aria-hidden="true" />
       <PageFloater season={season} data-calendar-decor="page-floater" aria-hidden="true" />
-      <PageSidebar season={season} activePath="/" />
+      <PageSidebar season={season} activePath="/calendar" />
       <Workspace>
-        <CalendarMain season={season} days={days} plants={plants} />
+        <CalendarMain calendarInfo={calendarInfo} visibleMonth={visibleMonth} days={days} plants={plants} />
         <MemoizedRightRail season={season} />
       </Workspace>
     </Shell>
@@ -102,91 +113,81 @@ export function CalendarExperience() {
 type PlantFilter = PlantId | 'all'
 type CalendarViewMode = 'calendar' | 'list'
 
-const CalendarMain = memo(function CalendarMain({ season, days, plants }: { season: Season; days: CalendarDay[]; plants: Plant[] }) {
-  const setSeason = useCalendarStore((state) => state.setSeason)
+const CalendarMain = memo(function CalendarMain({
+  calendarInfo,
+  visibleMonth,
+  days,
+  plants,
+}: {
+  calendarInfo: CalendarMonthInfo
+  visibleMonth: CalendarMonth
+  days: CalendarDay[]
+  plants: Plant[]
+}) {
+  const season = calendarInfo.season
+  const moveVisibleMonth = useCalendarStore((state) => state.moveVisibleMonth)
+  const selectSeason = useCalendarStore((state) => state.selectSeason)
+  const selectToday = useCalendarStore((state) => state.selectToday)
   const selectDate = useCalendarStore((state) => state.selectDate)
-  const selectedDate = useCalendarStore((state) => state.selectedDate)
   const showDetail = useCalendarStore((state) => state.showDetail)
   const closeDetail = useCalendarStore((state) => state.closeDetail)
   const calendarRef = useRef<FullCalendar>(null)
-  const seasonChangeTimerRef = useRef<number | null>(null)
-  const seasonSettleTimerRef = useRef<number | null>(null)
-  const [pendingSeason, setPendingSeason] = useState<Season | null>(null)
   const [plantFilter, setPlantFilter] = useState<PlantFilter>('all')
   const [viewMode, setViewMode] = useState<CalendarViewMode>('calendar')
-  const calendarConfig = getFullCalendarSeasonConfig(season)
-  const calendarInfo = getSeasonCalendarInfo(season)
+  const calendarConfig = getFullCalendarMonthConfig(visibleMonth, calendarInfo.selectedDate)
   const visibleDays = useMemo(() => days.map((day) => filterCalendarDay(day, plantFilter)), [days, plantFilter])
-  const selectedDay = useMemo(() => visibleDays.find((day) => day.inMonth && day.date === selectedDate), [selectedDate, visibleDays])
-
-  const handleSeasonChange = useCallback(
-    (nextSeason: Season) => {
-      if (nextSeason === season) return
-      if (seasonChangeTimerRef.current) window.clearTimeout(seasonChangeTimerRef.current)
-      if (seasonSettleTimerRef.current) window.clearTimeout(seasonSettleTimerRef.current)
-
-      setPendingSeason(nextSeason)
-      seasonChangeTimerRef.current = window.setTimeout(() => {
-        setSeason(nextSeason)
-      }, 80)
-    },
-    [season, setSeason],
+  const selectedDay = useMemo(
+    () => visibleDays.find((day) => day.inMonth && day.date === calendarInfo.selectedDate),
+    [calendarInfo.selectedDate, visibleDays],
   )
+  const selectedDaySummary = selectedDay
+    ? `${selectedDay.date}일 · 일정 ${selectedDay.tasks.length}개 · 식물 ${selectedDay.plants.length}개`
+    : `${calendarInfo.monthLabel} 정원`
 
-  const jumpSeason = useCallback(
+  const moveCalendarMonth = useCallback(
     (direction: -1 | 1) => {
-      const currentIndex = seasonOrder.indexOf(season)
-      const nextSeason = seasonOrder[(currentIndex + direction + seasonOrder.length) % seasonOrder.length]
-      handleSeasonChange(nextSeason)
+      moveVisibleMonth(direction)
     },
-    [handleSeasonChange, season],
+    [moveVisibleMonth],
   )
 
-  const selectToday = useCallback(() => {
-    selectDate(getDefaultSelectedDateBySeason(season))
-  }, [season, selectDate])
+  const goToToday = useCallback(() => {
+    selectToday()
+  }, [selectToday])
 
   // Stable callbacks so FullCalendar doesn't remount its cell renderers on every
   // parent re-render (e.g. DayDetail open/close, selectedDate change, etc.)
   const renderDayCell = useCallback(
     (arg: DayCellContentArg) => {
-      const day = getFullCalendarDay(season, visibleDays, arg.date)
+      const day = getFullCalendarDay(visibleMonth, calendarInfo.selectedDate, visibleDays, arg.date)
       if (!day) return null
       return <MemoizedCalendarCell season={season} day={day} onSelectDate={selectDate} />
     },
-    [season, selectDate, visibleDays],
+    [calendarInfo.selectedDate, season, selectDate, visibleDays, visibleMonth],
   )
 
   const handleDateClick = useCallback(
     (arg: DateClickArg) => {
-      const day = getFullCalendarDay(season, visibleDays, arg.date)
+      const day = getFullCalendarDay(visibleMonth, calendarInfo.selectedDate, visibleDays, arg.date)
       if (day?.inMonth) selectDate(day.date)
     },
-    [season, selectDate, visibleDays],
+    [calendarInfo.selectedDate, selectDate, visibleDays, visibleMonth],
   )
 
   useEffect(() => {
     calendarRef.current?.getApi().gotoDate(calendarConfig.initialDate)
   }, [calendarConfig.initialDate])
 
-  useEffect(() => {
-    return () => {
-      if (seasonChangeTimerRef.current) window.clearTimeout(seasonChangeTimerRef.current)
-      if (seasonSettleTimerRef.current) window.clearTimeout(seasonSettleTimerRef.current)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (pendingSeason !== season) return
-    if (seasonSettleTimerRef.current) window.clearTimeout(seasonSettleTimerRef.current)
-    seasonSettleTimerRef.current = window.setTimeout(() => setPendingSeason(null), 360)
-  }, [pendingSeason, season])
-
   return (
     <>
       <CalendarArea>
         <TopBar>
-          <h1>관리 캘린더</h1>
+          <TopBarTitle>
+            <h1>관리 캘린더</h1>
+            <p>
+              {seasonMeta[season].label} 정원 · {selectedDaySummary}
+            </p>
+          </TopBarTitle>
           <IconControls aria-label="View controls">
             <IconButton type="button" aria-label="Calendar view" aria-pressed={viewMode === 'calendar'} onClick={() => setViewMode('calendar')}>
               ◴
@@ -196,20 +197,20 @@ const CalendarMain = memo(function CalendarMain({ season, days, plants }: { seas
             </IconButton>
           </IconControls>
         </TopBar>
-        <Toolbar>
+        <Toolbar data-calendar-toolbar>
           <MonthControls>
-            <ArrowButton type="button" aria-label="Previous month" onClick={() => jumpSeason(-1)}>
+            <ArrowButton type="button" aria-label="Previous month" onClick={() => moveCalendarMonth(-1)}>
               ‹
             </ArrowButton>
-            <MonthButton type="button" onClick={selectToday}>
+            <MonthButton type="button" onClick={goToToday}>
               <strong>{calendarInfo.monthLabel}</strong>
             </MonthButton>
-            <ArrowButton type="button" aria-label="Next month" onClick={() => jumpSeason(1)}>
+            <ArrowButton type="button" aria-label="Next month" onClick={() => moveCalendarMonth(1)}>
               ›
             </ArrowButton>
           </MonthControls>
-          <SoftButton type="button" onClick={selectToday}>
-            {calendarInfo.isCurrentSeason ? '오늘' : '대표일'}
+          <SoftButton type="button" onClick={goToToday}>
+            오늘
           </SoftButton>
           <ToolbarSpacer />
           <SoftSelect
@@ -235,7 +236,7 @@ const CalendarMain = memo(function CalendarMain({ season, days, plants }: { seas
                 active={season === seasonKey}
                 seasonKey={seasonKey}
                 data-season-tab={seasonKey}
-                onClick={() => handleSeasonChange(seasonKey)}
+                onClick={() => selectSeason(seasonKey)}
               >
                 <span aria-hidden="true" />
                 {seasonMeta[seasonKey].label}
@@ -275,12 +276,6 @@ const CalendarMain = memo(function CalendarMain({ season, days, plants }: { seas
         ) : (
           <CalendarListView days={visibleDays} onSelectDate={selectDate} />
         )}
-        {pendingSeason ? (
-          <SeasonChangeOverlay aria-live="polite" aria-label="계절 변경 중">
-            <span />
-            <strong>{seasonMeta[pendingSeason].label} 캘린더를 불러오는 중</strong>
-          </SeasonChangeOverlay>
-        ) : null}
       </CalendarArea>
       {showDetail && selectedDay ? <DayDetail season={season} day={selectedDay} onClose={closeDetail} /> : null}
     </>
@@ -308,7 +303,7 @@ function CalendarListView({ days, onSelectDate }: { days: CalendarDay[]; onSelec
         {scheduledDays.length > 0 ? (
           scheduledDays.map((day) => (
             <button
-              key={`list-${day.date}`}
+              key={`list-${day.dateKey}`}
               type="button"
               onClick={() => onSelectDate(day.date)}
               style={{
@@ -359,7 +354,8 @@ function CalendarCell({ season, day, onSelectDate }: { season: Season; day: Cale
       aria-label={day.isToday ? `오늘, ${day.date}일` : `${day.date}일`}
       data-in-month={day.inMonth}
       data-plant-count={day.plants.length}
-      data-fullcalendar-date={day.inMonth ? day.date : undefined}
+      data-fullcalendar-date={day.inMonth ? day.dateKey : undefined}
+      onClick={day.inMonth ? () => onSelectDate(day.date) : undefined}
       onKeyDown={(event) => {
         if (!day.inMonth) return
         if (event.key === 'Enter' || event.key === ' ') {
@@ -503,6 +499,7 @@ function areCalendarCellPropsEqual(previous: CalendarCellProps, next: CalendarCe
   return (
     previous.season === next.season &&
     previous.onSelectDate === next.onSelectDate &&
+    previous.day.dateKey === next.day.dateKey &&
     previous.day.date === next.day.date &&
     previous.day.inMonth === next.day.inMonth &&
     previous.day.isToday === next.day.isToday &&

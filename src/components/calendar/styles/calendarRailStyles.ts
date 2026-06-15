@@ -10,6 +10,7 @@ export const RightPanel = styled.aside`
   align-content: start;
   gap: 18px;
   padding-top: 118px;
+  min-width: 0;
 
   @media (max-width: 1180px) {
     display: none;
@@ -18,7 +19,8 @@ export const RightPanel = styled.aside`
 
 export const RailCard = styled.section`
   overflow: hidden;
-  padding: 18px 15px;
+  min-width: 0;
+  padding: 18px 16px;
   border: 1px solid var(--control-line);
   border-radius: ${radii.panel};
   background:
@@ -39,6 +41,7 @@ export const RailCard = styled.section`
   h2 {
     margin: 0 0 13px;
     font-size: 15px;
+    line-height: 1.25;
   }
 `
 

@@ -136,7 +136,7 @@ export const CalendarGrid = styled.div`
   }
 
   .fc .fc-daygrid-day-frame {
-    min-height: clamp(111px, 12.55vh, 132px);
+    min-height: clamp(98px, 11.4vh, 122px);
     padding: 0;
   }
 
@@ -161,7 +161,7 @@ export const CalendarGrid = styled.div`
 
   @media (max-width: 760px) {
     .fc .fc-daygrid-day-frame {
-      min-height: 92px;
+      min-height: 88px;
     }
   }
 `
@@ -174,8 +174,8 @@ export const DayCell = styled.div<{ season: Season; day: CalendarDay }>`
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  min-height: clamp(111px, 12.55vh, 132px);
-  padding: 13px 12px 0;
+  min-height: clamp(98px, 11.4vh, 122px);
+  padding: 12px 11px 0;
   border: 0;
   background: ${({ day, season }) => (day.isSelected ? seasonTheme[season].selectedCell : seasonTheme[season].cellLight)};
   text-align: left;
@@ -240,7 +240,7 @@ export const DayCell = styled.div<{ season: Season; day: CalendarDay }>`
       : ''}
 
   @media (max-width: 760px) {
-    min-height: 92px;
+    min-height: 88px;
     padding: 9px 7px 0;
   }
 `
@@ -252,13 +252,13 @@ export const DateText = styled.span<{ day: CalendarDay }>`
   z-index: 3;
   display: inline-grid;
   place-items: center;
-  min-width: ${({ day }) => (day.isToday ? '30px' : 'auto')};
-  height: ${({ day }) => (day.isToday ? '30px' : 'auto')};
+  min-width: ${({ day }) => (day.isToday ? '29px' : 'auto')};
+  height: ${({ day }) => (day.isToday ? '29px' : 'auto')};
   border-radius: 50%;
   color: ${({ day }) => (day.isToday ? '#ffffff' : day.isSunday ? '#ff2323' : day.inMonth ? '#111711' : '#aaa9a1')};
   background: ${({ day }) => (day.isToday ? 'var(--accent)' : 'transparent')};
   box-shadow: ${({ day }) => (day.isToday ? '0 7px 14px color-mix(in srgb, var(--accent) 28%, transparent)' : 'none')};
-  font-size: ${({ day }) => (day.isToday ? '16px' : '17px')};
+  font-size: ${({ day }) => (day.isToday ? '15px' : '16px')};
   font-weight: 700;
 
   html[data-theme='night'] & {
@@ -278,7 +278,7 @@ export const DateText = styled.span<{ day: CalendarDay }>`
 export const TodayBadge = styled.span`
   position: absolute;
   z-index: 4;
-  top: 48px;
+  top: 46px;
   left: 13px;
   display: inline-flex;
   align-items: center;
@@ -306,15 +306,15 @@ export const TodayBadge = styled.span`
 
 export const TaskChip = styled.span<{ completed: boolean }>`
   position: absolute;
-  top: 13px;
+  top: 12px;
   right: 10px;
   z-index: 4;
   display: inline-flex;
   align-items: center;
   max-width: calc(100% - 54px);
-  height: 25px;
+  height: 24px;
   gap: 5px;
-  padding: 0 8px;
+  padding: 0 7px;
   border: 1px solid ${({ completed }) => (completed ? 'color-mix(in srgb, var(--accent) 42%, transparent)' : 'rgba(88, 85, 71, 0.14)')};
   border-radius: ${radii.round};
   color: ${({ completed }) => (completed ? 'var(--accent)' : '#323b33')};
@@ -323,7 +323,7 @@ export const TaskChip = styled.span<{ completed: boolean }>`
       ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.8), color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.66)))'
       : 'rgba(255, 255, 255, 0.64)'};
   box-shadow: ${({ completed }) => (completed ? '0 8px 18px color-mix(in srgb, var(--accent) 16%, transparent)' : 'none')};
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;

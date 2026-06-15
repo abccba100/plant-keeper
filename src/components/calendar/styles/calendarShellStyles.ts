@@ -29,10 +29,11 @@ export const Shell = styled.div<{ season: Season }>`
   position: relative;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: 232px minmax(0, 1fr);
   background: ${({ season }) => seasonTheme[season].pageBackground};
   color: #151815;
   isolation: isolate;
+  overflow-x: clip;
 
   html[data-theme='night'] & {
     --accent: #7fa8ff;
@@ -255,7 +256,7 @@ export const PageFloater = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 3;
   left: ${({ season }) => (season === 'spring' ? 'clamp(390px, 34vw, 520px)' : 'clamp(420px, 36vw, 520px)')};
-  top: ${({ season }) => (season === 'spring' ? '8px' : season === 'summer' ? '116px' : '12px')};
+  top: ${({ season }) => (season === 'spring' ? '8px' : season === 'summer' ? '172px' : '12px')};
   width: ${({ season }) => (season === 'spring' ? '104px' : season === 'summer' ? '42px' : season === 'autumn' ? '42px' : '40px')};
   aspect-ratio: ${({ season }) => (season === 'spring' ? '700 / 470' : season === 'summer' ? '120 / 126' : season === 'autumn' ? '260 / 247' : '260 / 228')};
   pointer-events: none;
@@ -284,10 +285,11 @@ export const Workspace = styled.main`
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(760px, 1fr) 156px;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(156px, 176px);
+  gap: 20px;
   min-width: 0;
-  padding: 30px 15px 24px 20px;
+  padding: 30px clamp(18px, 2vw, 28px) 28px;
+  overflow: hidden;
 
   @media (max-width: 1180px) {
     grid-template-columns: minmax(0, 1fr);
@@ -304,74 +306,38 @@ export const CalendarArea = styled.section`
   min-width: 0;
 `
 
-export const SeasonChangeOverlay = styled.div`
-  position: absolute;
-  inset: 106px 0 0;
-  z-index: 8;
-  display: grid;
-  place-items: center;
-  border-radius: ${radii.panel};
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.38) 44%, transparent 72%),
-    rgba(245, 243, 238, 0.46);
-  backdrop-filter: blur(3px);
-  pointer-events: none;
-  animation: seasonOverlayIn 140ms ease-out;
-
-  > span {
-    width: 44px;
-    height: 44px;
-    border: 3px solid color-mix(in srgb, var(--accent) 18%, transparent);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: seasonSpin 780ms linear infinite;
-  }
-
-  strong {
-    position: absolute;
-    top: calc(50% + 38px);
-    color: var(--accent);
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: 0;
-  }
-
-  @media (max-width: 760px) {
-    inset: 154px 0 0;
-
-    strong {
-      font-size: 12px;
-    }
-  }
-
-  @keyframes seasonSpin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  @keyframes seasonOverlayIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-`
-
 export const TopBar = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 18px;
   min-height: 36px;
   margin-bottom: 20px;
 
   h1 {
     margin: 0;
-    font-size: 25px;
+    font-size: 28px;
     line-height: 1;
     letter-spacing: 0;
+    text-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+
+  @media (max-width: 760px) {
+    align-items: flex-start;
+  }
+`
+
+export const TopBarTitle = styled.div`
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+
+  p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    font-weight: 700;
+    line-height: 1.45;
   }
 `
 
@@ -397,6 +363,15 @@ export const IconButton = styled.button`
   line-height: 1;
   cursor: pointer;
 
+  &[aria-pressed='true'] {
+    color: #ffffff;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 88%, #ffffff 12%), var(--accent));
+    border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+    box-shadow:
+      0 12px 24px color-mix(in srgb, var(--accent) 22%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  }
+
   &:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
@@ -408,6 +383,12 @@ export const IconButton = styled.button`
       0 10px 22px rgba(0, 0, 0, 0.22),
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
+
+  html[data-theme='night'] &[aria-pressed='true'] {
+    color: #07111f;
+    background: #dbe7ff;
+    border-color: rgba(213, 227, 255, 0.34);
+  }
 `
 
 export const Toolbar = styled.div`
@@ -416,6 +397,24 @@ export const Toolbar = styled.div`
   gap: 10px;
   margin-bottom: 18px;
   min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--control-line);
+  border-radius: ${radii.panel};
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.34)),
+    var(--control-surface);
+  box-shadow:
+    0 16px 34px color-mix(in srgb, var(--accent) 10%, rgba(58, 52, 42, 0.06)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68);
+
+  html[data-theme='night'] & {
+    background:
+      linear-gradient(180deg, rgba(24, 38, 63, 0.72), rgba(12, 21, 38, 0.62)),
+      var(--control-surface);
+    box-shadow:
+      0 18px 42px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
 
   @media (max-width: 1120px) {
     flex-wrap: wrap;
@@ -463,7 +462,7 @@ export const MonthButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 164px;
+  min-width: 156px;
   height: 42px;
   padding: 0 16px;
   border: 1px solid var(--control-line);
@@ -475,7 +474,7 @@ export const MonthButton = styled.button`
   cursor: pointer;
 
   strong {
-    font-size: 19px;
+    font-size: 18px;
     line-height: 1;
     white-space: nowrap;
   }
@@ -494,7 +493,7 @@ export const MonthButton = styled.button`
 `
 
 export const SoftButton = styled.button`
-  min-width: 64px;
+  min-width: 60px;
   height: 42px;
   padding: 0 14px;
   border: 1px solid var(--control-line);
@@ -524,6 +523,7 @@ export const SoftButton = styled.button`
 
 export const SoftSelect = styled.select`
   min-width: 112px;
+  max-width: 150px;
   height: 42px;
   padding: 0 34px 0 14px;
   border: 1px solid var(--control-line);
@@ -588,7 +588,7 @@ export const SeasonTab = styled.button<{ active?: boolean; seasonKey: Season }>`
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-width: 78px;
+  min-width: 68px;
   padding: 0 10px;
   border: 0;
   border-left: 1px solid var(--control-line);
