@@ -8,6 +8,7 @@ import {
   getCurrentSeason,
   getSeasonForMonthIndex,
   seasonOrder,
+  type CalendarMonth,
   type CalendarTaskType,
   type CompletedTaskMap,
   type Season,
@@ -47,6 +48,16 @@ type CalendarStore = {
   closeDetail: () => void
 }
 
+type SavedCalendarState = {
+  season?: Season
+  visibleYear?: number
+  visibleMonthIndex?: number
+  selectedDate?: number
+  completedTaskIds?: CompletedTaskMap
+  userTasksByDate?: UserCalendarTaskMap
+  memosByDate?: Record<string, string>
+}
+
 function getInitialSeason(): Season {
   if (typeof window === 'undefined') {
     return getCurrentSeason()
@@ -70,6 +81,42 @@ function getNextCalendarMonth(year: number, monthIndex: number, monthOffset: -1 
   }
 }
 
+function getCalendarViewState(calendarMonth: CalendarMonth, selectedDate?: number) {
+  const calendarInfo = getCalendarMonthInfo(calendarMonth, selectedDate)
+
+  return {
+    season: calendarInfo.season,
+    visibleYear: calendarInfo.year,
+    visibleMonthIndex: calendarInfo.monthIndex,
+    selectedDate: calendarInfo.selectedDate,
+    showDetail: false,
+  }
+}
+
+function createUserTaskId(task: AddCalendarTaskInput) {
+  const dateKey = getCalendarDateKey(task.year, task.monthIndex, task.date)
+  const plantKey = task.plantId ?? task.plantKind
+  const randomKey = Math.random().toString(36).slice(2, 7)
+
+  return `${dateKey}-${task.type}-${plantKey}-${Date.now()}-${randomKey}`
+}
+
+function getSavedState(value: unknown): SavedCalendarState {
+  if (typeof value === 'object' && value !== null) {
+    return value as SavedCalendarState
+  }
+
+  return {}
+}
+
+function getSavedSeason(season: Season | undefined) {
+  if (season && seasonOrder.includes(season)) {
+    return season
+  }
+
+  return initialCalendarInfo.season
+}
+
 export const useCalendarStore = create<CalendarStore>()(
   persist(
     (set) => ({
@@ -84,28 +131,12 @@ export const useCalendarStore = create<CalendarStore>()(
       moveVisibleMonth: (monthOffset) =>
         set((state) => {
           const nextMonth = getNextCalendarMonth(state.visibleYear, state.visibleMonthIndex, monthOffset)
-          const nextCalendarInfo = getCalendarMonthInfo(nextMonth, state.selectedDate)
-
-          return {
-            season: nextCalendarInfo.season,
-            visibleYear: nextCalendarInfo.year,
-            visibleMonthIndex: nextCalendarInfo.monthIndex,
-            selectedDate: nextCalendarInfo.selectedDate,
-            showDetail: false,
-          }
+          return getCalendarViewState(nextMonth, state.selectedDate)
         }),
       selectSeason: (season) =>
         set(() => {
           const nextMonth = getCalendarMonthBySeason(season)
-          const nextCalendarInfo = getCalendarMonthInfo(nextMonth)
-
-          return {
-            season: nextCalendarInfo.season,
-            visibleYear: nextCalendarInfo.year,
-            visibleMonthIndex: nextCalendarInfo.monthIndex,
-            selectedDate: nextCalendarInfo.selectedDate,
-            showDetail: false,
-          }
+          return getCalendarViewState(nextMonth)
         }),
       selectToday: () =>
         set(() => {
@@ -132,8 +163,7 @@ export const useCalendarStore = create<CalendarStore>()(
       addTask: (task) =>
         set((state) => {
           const dateKey = getCalendarDateKey(task.year, task.monthIndex, task.date)
-          const plantKey = task.plantId ?? task.plantKind
-          const id = `${dateKey}-${task.type}-${plantKey}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+          const id = createUserTaskId(task)
 
           return {
             userTasksByDate: {
@@ -183,23 +213,15 @@ export const useCalendarStore = create<CalendarStore>()(
       }),
       version: 2,
       migrate: (persistedState) => {
-        const previousState = persistedState as Partial<CalendarStore>
-        const season =
-          previousState.season && seasonOrder.includes(previousState.season)
-            ? previousState.season
-            : initialCalendarInfo.season
+        const previousState = getSavedState(persistedState)
+        const season = getSavedSeason(previousState.season)
         const defaultMonth = getCalendarMonthBySeason(season)
         const visibleYear = previousState.visibleYear ?? defaultMonth.year
         const visibleMonthIndex = previousState.visibleMonthIndex ?? defaultMonth.monthIndex
-        const calendarInfo = getCalendarMonthInfo({ year: visibleYear, monthIndex: visibleMonthIndex }, previousState.selectedDate)
 
         return {
           ...previousState,
-          season: calendarInfo.season,
-          visibleYear: calendarInfo.year,
-          visibleMonthIndex: calendarInfo.monthIndex,
-          selectedDate: calendarInfo.selectedDate,
-          showDetail: false,
+          ...getCalendarViewState({ year: visibleYear, monthIndex: visibleMonthIndex }, previousState.selectedDate),
         }
       },
     },

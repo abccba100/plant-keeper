@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import '../../components/styles/shell.css'
 import '../../components/styles/register.css'
 import '../../components/styles/analyze.css'
@@ -7,7 +7,7 @@ import { Icon } from '../../components/common/Icon'
 import { PageSidebar } from '../../components/layout/PageSidebar'
 import { ProgressStepper } from '../../components/common/ProgressStepper'
 import { CalRegisterModal } from '../../components/analyze/CalRegisterModal'
-import { getImageUploadError, replaceObjectUrl, revokeObjectUrl } from '../../api/imageUpload'
+import { useImageUpload } from '../../hooks/useImageUpload'
 
 import { FlowCard, RegRail } from '../../components/register/RegisterPanels'
 import { SPECIES_BY_FILE, STEPS, pickSpecies, stepIndexFor, type RegisterState, type Species } from '../../store/registerModel'
@@ -18,13 +18,10 @@ export function RegisterPage() {
   const [state, setState] = useState<RegisterState>('idle')
   const [modal, setModal] = useState(false)
   const [toast, setToast] = useState(false)
-  const [fileUrl, setFileUrl] = useState<string>()
-  const [selectedFile, setSelectedFile] = useState<File>()
-  const [fileName, setFileName] = useState<string>()
   const [species, setSpecies] = useState<Species>(SPECIES_BY_FILE[0])
-  const [error, setError] = useState<string>()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const addPlant = usePlantStore((store) => store.addPlant)
+  const imageUpload = useImageUpload()
 
   const subtitle =
     state === 'idle' || state === 'preview'
@@ -36,31 +33,24 @@ export function RegisterPage() {
           : '등록이 완료되었어요.'
 
   function pickFile(file: File) {
-    const uploadError = getImageUploadError(file)
-
-    if (uploadError) {
-      setError(uploadError)
+    if (!imageUpload.pickImage(file)) {
       return
     }
 
-    setError(undefined)
-    setFileUrl((oldUrl) => replaceObjectUrl(oldUrl, file))
-    setSelectedFile(file)
-    setFileName(file.name)
     setSpecies(pickSpecies(file.name))
     setState('preview')
   }
 
   async function analyze() {
-    if (!selectedFile) {
-      setError('분석할 이미지를 먼저 선택해 주세요.')
+    if (!imageUpload.file) {
+      imageUpload.setUploadError('분석할 이미지를 먼저 선택해 주세요.')
       return
     }
 
     setState('analyzing')
 
     try {
-      const result = await analyzePlantImage({ imageFile: selectedFile, mode: 'identify' })
+      const result = await analyzePlantImage({ imageFile: imageUpload.file, mode: 'identify' })
 
       setSpecies({
         name: result.plantName,
@@ -71,10 +61,10 @@ export function RegisterPage() {
         confidence: result.confidence,
         care: result.care,
       })
-      setError(undefined)
+      imageUpload.setUploadError(undefined)
       setState('result')
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'AI 분석에 실패했습니다.')
+      imageUpload.setUploadError(error instanceof Error ? error.message : 'AI 분석에 실패했습니다.')
       setState('preview')
     }
   }
@@ -93,19 +83,13 @@ export function RegisterPage() {
   }
 
   function reset() {
-    revokeObjectUrl(fileUrl)
+    imageUpload.resetImage()
     setState('idle')
     setModal(false)
     setToast(false)
-    setFileUrl(undefined)
-    setSelectedFile(undefined)
-    setFileName(undefined)
     setSpecies(SPECIES_BY_FILE[0])
-    setError(undefined)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
-
-  useEffect(() => () => revokeObjectUrl(fileUrl), [fileUrl])
 
   return (
     <>
@@ -136,10 +120,10 @@ export function RegisterPage() {
               <ProgressStepper steps={STEPS} currentIndex={stepIndexFor(state)} complete={state === 'registered'} />
               <FlowCard
                 state={state}
-                fileUrl={fileUrl}
-                fileName={fileName}
+                fileUrl={imageUpload.fileUrl}
+                fileName={imageUpload.fileName}
                 species={species}
-                error={error}
+                error={imageUpload.uploadError}
                 onPickClick={() => fileInputRef.current?.click()}
                 onDropFile={pickFile}
                 onAnalyze={analyze}

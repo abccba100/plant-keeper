@@ -3,6 +3,37 @@ import { radii, seasonTheme } from '../../styles/design-system/tokens'
 import type { CalendarDay, Season } from '../../../store/calendarData'
 import { seasonDecor } from '../decor/seasonDecorRegistry'
 
+const footGrass = {
+  left: { spring: '10px', summer: '10px', autumn: '18px', winter: '18px' },
+  bottom: { spring: '8px', summer: '9px', autumn: '10px', winter: '8px' },
+  width: { spring: '118px', summer: '116px', autumn: '88px', winter: '72px' },
+  aspectRatio: { spring: '900 / 285', summer: '900 / 171', autumn: '204 / 84', winter: '360 / 253' },
+  opacity: { spring: 0.34, summer: 0.32, autumn: 0.28, winter: 0.3 },
+  mobileWidth: { spring: '94px', summer: '92px', autumn: '70px', winter: '62px' },
+}
+
+const altFootGrass = {
+  bottom: { spring: '8px', summer: '9px', autumn: '9px', winter: '9px' },
+  width: { spring: '106px', summer: '118px', autumn: '0', winter: '0' },
+  display: { spring: 'block', summer: 'block', autumn: 'none', winter: 'none' },
+  opacity: { spring: 0.28, summer: 0.26, autumn: 0.26, winter: 0.26 },
+  mobileWidth: { spring: '78px', summer: '86px', autumn: '86px', winter: '86px' },
+}
+
+function getDateTextColor(day: CalendarDay) {
+  if (day.isToday) return '#ffffff'
+  if (day.isSunday) return '#ff2323'
+  if (day.inMonth) return '#111711'
+  return '#aaa9a1'
+}
+
+function getNightDateTextColor(day: CalendarDay) {
+  if (day.isToday) return '#07111f'
+  if (day.isSunday) return '#ff9b9b'
+  if (day.inMonth) return '#e7f0ff'
+  return '#697b95'
+}
+
 export const CalendarFrame = styled.div`
   position: relative;
   overflow: hidden;
@@ -23,10 +54,10 @@ export const CalendarFrame = styled.div`
 export const CalendarFootGrass = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 2;
-  left: ${({ season }) => (season === 'autumn' || season === 'winter' ? '18px' : '10px')};
-  bottom: ${({ season }) => (season === 'spring' ? '8px' : season === 'summer' ? '9px' : season === 'autumn' ? '10px' : '8px')};
-  width: ${({ season }) => (season === 'spring' ? '118px' : season === 'summer' ? '116px' : season === 'autumn' ? '88px' : '72px')};
-  aspect-ratio: ${({ season }) => (season === 'spring' ? '900 / 285' : season === 'summer' ? '900 / 171' : season === 'autumn' ? '204 / 84' : '360 / 253')};
+  left: ${({ season }) => footGrass.left[season]};
+  bottom: ${({ season }) => footGrass.bottom[season]};
+  width: ${({ season }) => footGrass.width[season]};
+  aspect-ratio: ${({ season }) => footGrass.aspectRatio[season]};
   pointer-events: none;
   display: block;
   background-image: url(${({ season }) => seasonDecor[season].ground});
@@ -34,11 +65,11 @@ export const CalendarFootGrass = styled.span<{ season: Season }>`
   background-position: left bottom;
   background-size: contain;
   backface-visibility: hidden;
-  opacity: ${({ season }) => (season === 'spring' ? 0.34 : season === 'summer' ? 0.32 : season === 'autumn' ? 0.28 : 0.3)};
+  opacity: ${({ season }) => footGrass.opacity[season]};
 
   @media (max-width: 900px) {
     bottom: 7px;
-    width: ${({ season }) => (season === 'spring' ? '94px' : season === 'summer' ? '92px' : season === 'autumn' ? '70px' : '62px')};
+    width: ${({ season }) => footGrass.mobileWidth[season]};
     opacity: 0.24;
   }
 
@@ -50,15 +81,15 @@ export const CalendarFootGrass = styled.span<{ season: Season }>`
 export const CalendarFootGrassAlt = styled(CalendarFootGrass)<{ season: Season }>`
   left: auto;
   right: 22px;
-  bottom: ${({ season }) => (season === 'spring' ? '8px' : '9px')};
-  width: ${({ season }) => (season === 'spring' ? '106px' : season === 'summer' ? '118px' : '0')};
-  display: ${({ season }) => (season === 'spring' || season === 'summer' ? 'block' : 'none')};
+  bottom: ${({ season }) => altFootGrass.bottom[season]};
+  width: ${({ season }) => altFootGrass.width[season]};
+  display: ${({ season }) => altFootGrass.display[season]};
   transform: scaleX(-1);
-  opacity: ${({ season }) => (season === 'spring' ? 0.28 : 0.26)};
+  opacity: ${({ season }) => altFootGrass.opacity[season]};
 
   @media (max-width: 900px) {
     right: 12px;
-    width: ${({ season }) => (season === 'spring' ? '78px' : '86px')};
+    width: ${({ season }) => altFootGrass.mobileWidth[season]};
   }
 `
 
@@ -255,14 +286,14 @@ export const DateText = styled.span<{ day: CalendarDay }>`
   min-width: ${({ day }) => (day.isToday ? '29px' : 'auto')};
   height: ${({ day }) => (day.isToday ? '29px' : 'auto')};
   border-radius: 50%;
-  color: ${({ day }) => (day.isToday ? '#ffffff' : day.isSunday ? '#ff2323' : day.inMonth ? '#111711' : '#aaa9a1')};
+  color: ${({ day }) => getDateTextColor(day)};
   background: ${({ day }) => (day.isToday ? 'var(--accent)' : 'transparent')};
   box-shadow: ${({ day }) => (day.isToday ? '0 7px 14px color-mix(in srgb, var(--accent) 28%, transparent)' : 'none')};
   font-size: ${({ day }) => (day.isToday ? '15px' : '16px')};
   font-weight: 700;
 
   html[data-theme='night'] & {
-    color: ${({ day }) => (day.isToday ? '#07111f' : day.isSunday ? '#ff9b9b' : day.inMonth ? '#e7f0ff' : '#697b95')};
+    color: ${({ day }) => getNightDateTextColor(day)};
     background: ${({ day }) => (day.isToday ? '#dbe7ff' : 'transparent')};
   }
 

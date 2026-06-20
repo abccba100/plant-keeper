@@ -127,8 +127,8 @@ export function FlowCard({
           </button>
           {error && <div className="opt-hint" role="alert">{error}</div>}
           <div className="dz-meta">
-            <span className="meta-pill"><Icon name="info" style={{ width: 13, height: 13 }} />JPG · PNG · WEBP</span>
-            <span className="meta-pill"><Icon name="info" style={{ width: 13, height: 13 }} />최대 5MB</span>
+            <span className="meta-pill"><Icon name="info" className="icon-xs" />JPG · PNG · WEBP</span>
+            <span className="meta-pill"><Icon name="info" className="icon-xs" />최대 5MB</span>
           </div>
         </div>
       </div>
@@ -168,16 +168,16 @@ export function FlowCard({
             <h2>AI 인식 결과</h2>
             <span className="sub">F-02</span>
           </div>
-          <div className="preview-wrap" style={{ gridTemplateColumns: '200px 1fr', alignItems: 'stretch', gap: 18 }}>
+          <div className="preview-wrap result-preview">
             <PhotoFrame fileUrl={fileUrl} fileName={fileName} plantKind={species.kind} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div className="result-copy">
               <div className="species-head">
                 <div>
                   <h3 className="species-name">{species.name}</h3>
                   <p className="species-latin">{species.latin}</p>
-                  <div style={{ marginTop: 10 }}>
+                  <div className="species-badge-row">
                     <span className={`badge ${species.difficulty}`}>
-                      <Icon name="sprout" style={{ width: 13, height: 13 }} />
+                      <Icon name="sprout" className="icon-xs" />
                       난이도 {species.difficultyLabel}
                     </span>
                   </div>
@@ -187,7 +187,7 @@ export function FlowCard({
                   <div className="lbl">일치율</div>
                 </div>
               </div>
-              <div className="reg-actions" style={{ marginTop: 'auto' }}>
+              <div className="reg-actions result-actions">
                 <button className="btn-ghost" type="button" onClick={onReset}>
                   <Icon name="refresh" />다른 사진
                 </button>
@@ -214,12 +214,12 @@ export function FlowCard({
         </p>
         <div className="success-chip">
           <PlantAvatar kind={species.kind} season="spring" className="pa" />
-          <span style={{ display: 'flex', flexDirection: 'column' }}>
+          <span className="success-copy">
             <strong>{species.name}</strong>
             <span>내 식물 · 난이도 {species.difficultyLabel}</span>
           </span>
         </div>
-        <div className="reg-actions" style={{ marginTop: 8 }}>
+        <div className="reg-actions success-actions">
           <button className="btn-ghost" type="button" onClick={onReset}>
             <Icon name="plus" />다른 식물 등록
           </button>

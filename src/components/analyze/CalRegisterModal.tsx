@@ -104,7 +104,6 @@ function CalRegisterModalContent({
   const [startOffset, setStartOffset] = useState(START_OPTIONS[0].offset)
   const [done, setDone] = useState(false)
 
-  const selectedTasks = scheduleTasks.filter((task) => task.on)
   const taskRows = scheduleTasks.map((task) => ({
     task,
     scheduleDate: getScheduleDate(visibleYear, visibleMonthIndex, selectedDate, startOffset, task.dayOffset),
@@ -114,7 +113,15 @@ function CalRegisterModalContent({
   const sub = `AI가 ${plantName}에게 추천한 관리 일정이에요. 등록할 항목만 선택하세요.`
 
   function handleTaskToggle(taskId: string, isSelected: boolean) {
-    setScheduleTasks((currentTasks) => currentTasks.map((task) => (task.id === taskId ? { ...task, on: isSelected } : task)))
+    setScheduleTasks((currentTasks) =>
+      currentTasks.map((task) => {
+        if (task.id !== taskId) {
+          return task
+        }
+
+        return { ...task, on: isSelected }
+      })
+    )
   }
 
   function handleConfirm() {
@@ -192,7 +199,7 @@ function CalRegisterModalContent({
               ))}
             </div>
 
-            <div className="cal-count">선택한 <b>{selectedTasks.length}개</b> 일정을 캘린더에 등록합니다.</div>
+            <div className="cal-count">선택한 <b>{selectedScheduleRows.length}개</b> 일정을 캘린더에 등록합니다.</div>
             <div className="cal-foot">
               <button className="btn-ghost" type="button" onClick={onClose}>나중에 할게요</button>
               <button className="btn-primary" type="button" onClick={handleConfirm} disabled={selectedScheduleRows.length === 0}>

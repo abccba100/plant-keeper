@@ -1,3 +1,4 @@
+import styled from '@emotion/styled'
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { DayCellContentArg } from '@fullcalendar/core'
 import type { DateClickArg } from '@fullcalendar/interaction'
@@ -140,9 +141,7 @@ const CalendarMain = memo(function CalendarMain({
     () => visibleDays.find((day) => day.inMonth && day.date === calendarInfo.selectedDate),
     [calendarInfo.selectedDate, visibleDays],
   )
-  const selectedDaySummary = selectedDay
-    ? `${selectedDay.date}일 · 일정 ${selectedDay.tasks.length}개 · 식물 ${selectedDay.plants.length}개`
-    : `${calendarInfo.monthLabel} 정원`
+  const selectedDaySummary = getSelectedDaySummary(selectedDay, calendarInfo)
 
   const moveCalendarMonth = useCallback(
     (direction: -1 | 1) => {
@@ -175,75 +174,34 @@ const CalendarMain = memo(function CalendarMain({
   )
 
   useEffect(() => {
-    calendarRef.current?.getApi().gotoDate(calendarConfig.initialDate)
+    const id = window.setTimeout(() => {
+      calendarRef.current?.getApi().gotoDate(calendarConfig.initialDate)
+    }, 0)
+
+    return () => window.clearTimeout(id)
   }, [calendarConfig.initialDate])
 
   return (
     <>
       <CalendarArea>
-        <TopBar>
-          <TopBarTitle>
-            <h1>관리 캘린더</h1>
-            <p>
-              {seasonMeta[season].label} 정원 · {selectedDaySummary}
-            </p>
-          </TopBarTitle>
-          <IconControls aria-label="View controls">
-            <IconButton type="button" aria-label="Calendar view" aria-pressed={viewMode === 'calendar'} onClick={() => setViewMode('calendar')}>
-              ◴
-            </IconButton>
-            <IconButton type="button" aria-label="List view" aria-pressed={viewMode === 'list'} onClick={() => setViewMode('list')}>
-              ☰
-            </IconButton>
-          </IconControls>
-        </TopBar>
-        <Toolbar data-calendar-toolbar>
-          <MonthControls>
-            <ArrowButton type="button" aria-label="Previous month" onClick={() => moveCalendarMonth(-1)}>
-              ‹
-            </ArrowButton>
-            <MonthButton type="button" onClick={goToToday}>
-              <strong>{calendarInfo.monthLabel}</strong>
-            </MonthButton>
-            <ArrowButton type="button" aria-label="Next month" onClick={() => moveCalendarMonth(1)}>
-              ›
-            </ArrowButton>
-          </MonthControls>
-          <SoftButton type="button" onClick={goToToday}>
-            오늘
-          </SoftButton>
-          <ToolbarSpacer />
-          <SoftSelect
-            aria-label="식물 필터"
-            value={plantFilter}
-            onChange={(event) => setPlantFilter(event.target.value as PlantFilter)}
-          >
-            <option value="all">모든 식물</option>
-            {plants.map((plant) => (
-              <option key={plant.id} value={plant.id}>
-                {plant.name}
-              </option>
-            ))}
-          </SoftSelect>
-          <SoftButton type="button" onClick={() => setViewMode((mode) => (mode === 'calendar' ? 'list' : 'calendar'))}>
-            {viewMode === 'calendar' ? '월간 보기' : '목록 보기'}
-          </SoftButton>
-          <SeasonTabs>
-            {seasonOrder.map((seasonKey) => (
-              <SeasonTab
-                key={seasonKey}
-                type="button"
-                active={season === seasonKey}
-                seasonKey={seasonKey}
-                data-season-tab={seasonKey}
-                onClick={() => selectSeason(seasonKey)}
-              >
-                <span aria-hidden="true" />
-                {seasonMeta[seasonKey].label}
-              </SeasonTab>
-            ))}
-          </SeasonTabs>
-        </Toolbar>
+        <CalendarHeader
+          season={season}
+          selectedDaySummary={selectedDaySummary}
+          viewMode={viewMode}
+          onSelectViewMode={setViewMode}
+        />
+        <CalendarToolbar
+          calendarInfo={calendarInfo}
+          plantFilter={plantFilter}
+          plants={plants}
+          season={season}
+          viewMode={viewMode}
+          onMoveMonth={moveCalendarMonth}
+          onSelectPlant={setPlantFilter}
+          onSelectSeason={selectSeason}
+          onToggleViewMode={() => setViewMode((mode) => (mode === 'calendar' ? 'list' : 'calendar'))}
+          onToday={goToToday}
+        />
         {viewMode === 'calendar' ? (
           <CalendarFrame>
             <CalendarFootGrass season={season} data-calendar-decor="calendar-foot" aria-hidden="true" />
@@ -282,6 +240,129 @@ const CalendarMain = memo(function CalendarMain({
   )
 })
 
+function getSelectedDaySummary(selectedDay: CalendarDay | undefined, calendarInfo: CalendarMonthInfo) {
+  if (!selectedDay) {
+    return `${calendarInfo.monthLabel} 정원`
+  }
+
+  return `${selectedDay.date}일 · 일정 ${selectedDay.tasks.length}개 · 식물 ${selectedDay.plants.length}개`
+}
+
+function CalendarHeader({
+  season,
+  selectedDaySummary,
+  viewMode,
+  onSelectViewMode,
+}: {
+  season: Season
+  selectedDaySummary: string
+  viewMode: CalendarViewMode
+  onSelectViewMode: (mode: CalendarViewMode) => void
+}) {
+  return (
+    <TopBar>
+      <TopBarTitle>
+        <h1>관리 캘린더</h1>
+        <p>
+          {seasonMeta[season].label} 정원 · {selectedDaySummary}
+        </p>
+      </TopBarTitle>
+      <IconControls aria-label="View controls">
+        <IconButton
+          type="button"
+          aria-label="Calendar view"
+          aria-pressed={viewMode === 'calendar'}
+          onClick={() => onSelectViewMode('calendar')}
+        >
+          ◴
+        </IconButton>
+        <IconButton
+          type="button"
+          aria-label="List view"
+          aria-pressed={viewMode === 'list'}
+          onClick={() => onSelectViewMode('list')}
+        >
+          ☰
+        </IconButton>
+      </IconControls>
+    </TopBar>
+  )
+}
+
+function CalendarToolbar({
+  calendarInfo,
+  plantFilter,
+  plants,
+  season,
+  viewMode,
+  onMoveMonth,
+  onSelectPlant,
+  onSelectSeason,
+  onToggleViewMode,
+  onToday,
+}: {
+  calendarInfo: CalendarMonthInfo
+  plantFilter: PlantFilter
+  plants: Plant[]
+  season: Season
+  viewMode: CalendarViewMode
+  onMoveMonth: (direction: -1 | 1) => void
+  onSelectPlant: (plantFilter: PlantFilter) => void
+  onSelectSeason: (season: Season) => void
+  onToggleViewMode: () => void
+  onToday: () => void
+}) {
+  return (
+    <Toolbar data-calendar-toolbar>
+      <MonthControls>
+        <ArrowButton type="button" aria-label="Previous month" onClick={() => onMoveMonth(-1)}>
+          ‹
+        </ArrowButton>
+        <MonthButton type="button" onClick={onToday}>
+          <strong>{calendarInfo.monthLabel}</strong>
+        </MonthButton>
+        <ArrowButton type="button" aria-label="Next month" onClick={() => onMoveMonth(1)}>
+          ›
+        </ArrowButton>
+      </MonthControls>
+      <SoftButton type="button" onClick={onToday}>
+        오늘
+      </SoftButton>
+      <ToolbarSpacer />
+      <SoftSelect
+        aria-label="식물 필터"
+        value={plantFilter}
+        onChange={(event) => onSelectPlant(event.target.value as PlantFilter)}
+      >
+        <option value="all">모든 식물</option>
+        {plants.map((plant) => (
+          <option key={plant.id} value={plant.id}>
+            {plant.name}
+          </option>
+        ))}
+      </SoftSelect>
+      <SoftButton type="button" onClick={onToggleViewMode}>
+        {viewMode === 'calendar' ? '월간 보기' : '목록 보기'}
+      </SoftButton>
+      <SeasonTabs>
+        {seasonOrder.map((seasonKey) => (
+          <SeasonTab
+            key={seasonKey}
+            type="button"
+            active={season === seasonKey}
+            seasonKey={seasonKey}
+            data-season-tab={seasonKey}
+            onClick={() => onSelectSeason(seasonKey)}
+          >
+            <span aria-hidden="true" />
+            {seasonMeta[seasonKey].label}
+          </SeasonTab>
+        ))}
+      </SeasonTabs>
+    </Toolbar>
+  )
+}
+
 function filterCalendarDay(day: CalendarDay, plantFilter: PlantFilter): CalendarDay {
   if (plantFilter === 'all') {
     return day
@@ -294,52 +375,88 @@ function filterCalendarDay(day: CalendarDay, plantFilter: PlantFilter): Calendar
   }
 }
 
+const ListBody = styled.div`
+  display: grid;
+  gap: 10px;
+  min-height: 520px;
+  padding: 18px;
+`
+
+const ListItemButton = styled.button`
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 68px;
+  padding: 12px 14px;
+  border: 1px solid var(--control-line);
+  border-radius: 11px;
+  background: var(--control-surface);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+`
+
+const ListDate = styled.strong`
+  color: var(--accent-deep);
+`
+
+const ListTaskCopy = styled.span`
+  display: grid;
+  gap: 4px;
+`
+
+const ListTaskTitle = styled.span`
+  font-weight: 800;
+`
+
+const ListTaskMeta = styled.span`
+  color: var(--ink-soft);
+  font-size: 13px;
+`
+
+const ListTaskCount = styled.span`
+  color: var(--accent-deep);
+  font-size: 13px;
+  font-weight: 800;
+`
+
+const EmptyListMessage = styled.div`
+  display: grid;
+  place-items: center;
+  min-height: 360px;
+  color: var(--ink-soft);
+  font-weight: 700;
+`
+
 function CalendarListView({ days, onSelectDate }: { days: CalendarDay[]; onSelectDate: (date: number) => void }) {
   const scheduledDays = days.filter((day) => day.inMonth && day.tasks.length > 0)
 
   return (
     <CalendarFrame>
-      <div style={{ display: 'grid', gap: 10, padding: 18, minHeight: 520 }}>
+      <ListBody>
         {scheduledDays.length > 0 ? (
           scheduledDays.map((day) => (
-            <button
+            <ListItemButton
               key={`list-${day.dateKey}`}
               type="button"
               onClick={() => onSelectDate(day.date)}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '72px 1fr auto',
-                alignItems: 'center',
-                gap: 14,
-                width: '100%',
-                minHeight: 68,
-                padding: '12px 14px',
-                border: '1px solid var(--control-line)',
-                borderRadius: 11,
-                background: 'var(--control-surface)',
-                color: 'inherit',
-                textAlign: 'left',
-                cursor: 'pointer',
-              }}
             >
-              <strong style={{ color: 'var(--accent-deep)' }}>{day.date}일</strong>
-              <span style={{ display: 'grid', gap: 4 }}>
-                <span style={{ fontWeight: 800 }}>{day.tasks[0].title}</span>
-                <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
+              <ListDate>{day.date}일</ListDate>
+              <ListTaskCopy>
+                <ListTaskTitle>{day.tasks[0].title}</ListTaskTitle>
+                <ListTaskMeta>
                   {day.tasks[0].time} · {day.tasks[0].plant.name}
-                </span>
-              </span>
-              <span style={{ fontSize: 13, color: 'var(--accent-deep)', fontWeight: 800 }}>
-                {day.tasks.length > 1 ? `+${day.tasks.length - 1}` : '상세'}
-              </span>
-            </button>
+                </ListTaskMeta>
+              </ListTaskCopy>
+              <ListTaskCount>{day.tasks.length > 1 ? `+${day.tasks.length - 1}` : '상세'}</ListTaskCount>
+            </ListItemButton>
           ))
         ) : (
-          <div style={{ display: 'grid', placeItems: 'center', minHeight: 360, color: 'var(--ink-soft)', fontWeight: 700 }}>
-            선택한 식물의 일정이 없습니다.
-          </div>
+          <EmptyListMessage>선택한 식물의 일정이 없습니다.</EmptyListMessage>
         )}
-      </div>
+      </ListBody>
     </CalendarFrame>
   )
 }
@@ -439,7 +556,7 @@ function CellPlant({
   growth: CalendarDay['growth']
   muted: boolean
 }) {
-  const scale = 0.56 + growth * 0.058 + (plant.kind === 'monstera' ? 0.09 : plant.kind === 'sansevieria' ? 0.03 : 0)
+  const scale = getCellPlantScale(plant, growth)
 
   return (
     <CellPlantCluster
@@ -484,6 +601,20 @@ function CellPlant({
       </CellPlantNode>
     </CellPlantCluster>
   )
+}
+
+function getCellPlantScale(plant: Plant, growth: CalendarDay['growth']) {
+  const baseScale = 0.56 + growth * 0.058
+
+  if (plant.kind === 'monstera') {
+    return baseScale + 0.09
+  }
+
+  if (plant.kind === 'sansevieria') {
+    return baseScale + 0.03
+  }
+
+  return baseScale
 }
 
 const MemoizedRightRail = memo(RightRail)

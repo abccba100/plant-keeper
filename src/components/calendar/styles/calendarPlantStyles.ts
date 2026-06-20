@@ -12,6 +12,31 @@ const nightSoil =
 const nightFrostSoil =
   'linear-gradient(180deg, rgba(229, 246, 253, .9), rgba(123, 158, 177, .6) 56%, rgba(45, 65, 76, .76))'
 
+function getDaySoilBackground(season: Season, moisture: CalendarMoisture) {
+  if (moisture === 'wet') return seasonTheme[season].wetSoil
+  if (moisture === 'dry') return seasonTheme[season].drySoil
+  return seasonTheme[season].soil
+}
+
+function getNightSoilBackground(season: Season, moisture: CalendarMoisture) {
+  if (moisture === 'wet') return nightWetSoil
+  if (season === 'winter' || moisture === 'frost') return nightFrostSoil
+  if (moisture === 'dry') return nightDrySoil
+  return nightSoil
+}
+
+function getTextureOpacity(season: Season, moisture: CalendarMoisture) {
+  if (moisture === 'wet') return 0.5
+  if (season === 'winter') return 0.3
+  return 0.42
+}
+
+function getShineOpacity(moisture: CalendarMoisture) {
+  if (moisture === 'wet') return 0.68
+  if (moisture === 'dry') return 0.16
+  return 0.36
+}
+
 export const SoilBand = styled.div<{ season: Season; day: CalendarDay }>`
   position: absolute;
   left: 4px;
@@ -19,9 +44,7 @@ export const SoilBand = styled.div<{ season: Season; day: CalendarDay }>`
   bottom: 8px;
   height: 22px;
   border-radius: 50% 50% 22% 22%;
-  background:
-    ${({ day, season }) =>
-      day.moisture === 'wet' ? seasonTheme[season].wetSoil : day.moisture === 'dry' ? seasonTheme[season].drySoil : seasonTheme[season].soil};
+  background: ${({ day, season }) => getDaySoilBackground(season, day.moisture)};
   box-shadow:
     inset 0 4px 10px rgba(255, 255, 255, 0.2),
     0 5px 8px rgba(65, 48, 34, 0.12);
@@ -32,9 +55,7 @@ export const SoilBand = styled.div<{ season: Season; day: CalendarDay }>`
   animation: ${({ day }) => (day.moisture === 'wet' ? 'soilSoak 780ms ease-out' : 'none')};
 
   html[data-theme='night'] & {
-    background:
-      ${({ day, season }) =>
-        day.moisture === 'wet' ? nightWetSoil : season === 'winter' || day.moisture === 'frost' ? nightFrostSoil : day.moisture === 'dry' ? nightDrySoil : nightSoil};
+    background: ${({ day, season }) => getNightSoilBackground(season, day.moisture)};
     box-shadow:
       inset 0 4px 10px rgba(207, 240, 255, 0.15),
       0 6px 10px rgba(0, 0, 0, 0.25);
@@ -67,7 +88,7 @@ export const SoilBand = styled.div<{ season: Season; day: CalendarDay }>`
       radial-gradient(circle at 28% 36%, rgba(183, 224, 232, 0.16) 0 2px, transparent 3px),
       radial-gradient(circle at 58% 45%, rgba(5, 20, 22, 0.18) 0 2px, transparent 3px);
     mix-blend-mode: normal;
-    opacity: ${({ season, day }) => (day.moisture === 'wet' ? 0.5 : season === 'winter' ? 0.3 : 0.42)};
+    opacity: ${({ season, day }) => getTextureOpacity(season, day.moisture)};
   }
 
 `
@@ -90,12 +111,7 @@ export const DetailSoilPatch = styled.span<{ season: Season; moisture: CalendarM
   width: ${({ compact }) => (compact ? '42px' : '66px')};
   height: ${({ compact }) => (compact ? '18px' : '24px')};
   border-radius: 50% 50% 30% 30%;
-  background: ${({ season, moisture }) =>
-    moisture === 'wet'
-      ? seasonTheme[season].wetSoil
-      : moisture === 'dry'
-        ? seasonTheme[season].drySoil
-        : seasonTheme[season].soil};
+  background: ${({ season, moisture }) => getDaySoilBackground(season, moisture)};
   box-shadow:
     inset 0 4px 9px rgba(255, 255, 255, 0.18),
     0 5px 8px rgba(65, 48, 34, 0.12);
@@ -103,8 +119,7 @@ export const DetailSoilPatch = styled.span<{ season: Season; moisture: CalendarM
   animation: ${({ moisture }) => (moisture === 'wet' ? 'anchoredSoilSoak 780ms ease-out' : 'none')};
 
   html[data-theme='night'] & {
-    background: ${({ season, moisture }) =>
-      moisture === 'wet' ? nightWetSoil : season === 'winter' || moisture === 'frost' ? nightFrostSoil : moisture === 'dry' ? nightDrySoil : nightSoil};
+    background: ${({ season, moisture }) => getNightSoilBackground(season, moisture)};
     box-shadow:
       inset 0 4px 10px rgba(207, 240, 255, 0.15),
       0 6px 10px rgba(0, 0, 0, 0.25);
@@ -132,7 +147,7 @@ export const DetailSoilPatch = styled.span<{ season: Season; moisture: CalendarM
       radial-gradient(circle at 18% 56%, rgba(4, 19, 21, 0.23) 0 2px, transparent 3px),
       radial-gradient(circle at 54% 42%, rgba(183, 224, 232, 0.16) 0 2px, transparent 3px);
     mix-blend-mode: normal;
-    opacity: ${({ season, moisture }) => (moisture === 'wet' ? 0.5 : season === 'winter' ? 0.3 : 0.42)};
+    opacity: ${({ season, moisture }) => getTextureOpacity(season, moisture)};
   }
 
   .soil-shine {
@@ -148,7 +163,7 @@ export const DetailSoilPatch = styled.span<{ season: Season; moisture: CalendarM
 
   html[data-theme='night'] & .soil-shine {
     background: rgba(213, 243, 255, 0.38);
-    opacity: ${({ moisture }) => (moisture === 'wet' ? 0.68 : moisture === 'dry' ? 0.16 : 0.36)};
+    opacity: ${({ moisture }) => getShineOpacity(moisture)};
   }
 
   .puddle {

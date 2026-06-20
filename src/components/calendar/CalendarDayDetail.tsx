@@ -1,6 +1,6 @@
-import { useState, type CSSProperties, type FormEvent } from 'react'
-import { getPlantMoisture, seasonMeta, type CalendarDay, type Season } from '../../store/calendarData'
-import { plants as defaultPlants, type Plant, type PlantId } from '../../store/plantData'
+import type { CSSProperties, FormEvent } from 'react'
+import { getPlantMoisture, seasonMeta, type CalendarDay, type CalendarTask, type Season } from '../../store/calendarData'
+import { plants as defaultPlants, type Plant } from '../../store/plantData'
 import { useCalendarStore } from '../../store/calendarStore'
 import { usePlantStore } from '../../store/plantStore'
 import {
@@ -44,10 +44,23 @@ import {
   withMoisture,
   type TaskComposerValue,
 } from './calendarConfig'
+import { useTaskComposer } from '../../hooks/useTaskComposer'
+
+type TaskComposerState = {
+  taskValue: TaskComposerValue
+  setTaskValue: (value: TaskComposerValue) => void
+  customTaskTitle: string
+  setCustomTaskTitle: (value: string) => void
+  effectivePlantId: string | undefined
+  setSelectedPlantId: (value: string) => void
+  isManualTask: boolean
+  canAddTask: boolean
+  handleAddTask: (event: FormEvent<HTMLFormElement>) => void
+}
 
 export function RightRail({ season }: { season: Season }) {
   const plants = usePlantStore((state) => state.plants)
-  const displayPlants = plants.length > 0 ? plants : defaultPlants
+  const displayPlants = getDisplayPlants(plants)
   const visiblePlants = displayPlants.slice(0, 4)
   const hiddenPlantCount = Math.max(0, displayPlants.length - visiblePlants.length)
 
@@ -88,51 +101,47 @@ export function RightRail({ season }: { season: Season }) {
   )
 }
 
+function getDisplayPlants(plants: Plant[]) {
+  if (plants.length > 0) {
+    return plants
+  }
+
+  return defaultPlants
+}
+
+function getDayStatus(day: CalendarDay) {
+  const completedWatering = day.tasks.some((task) => task.type === 'watering' && task.completed)
+
+  if (completedWatering) {
+    return '토양이 젖어 있어요'
+  }
+
+  if (day.tasks.length > 0) {
+    return '수행할 일정이 있어요'
+  }
+
+  return '예정된 일정 없음'
+}
+
 export function DayDetail({ season, day, onClose }: { season: Season; day: CalendarDay; onClose: () => void }) {
-  const addTask = useCalendarStore((state) => state.addTask)
   const completeTask = useCalendarStore((state) => state.completeTask)
   const savedMemo = useCalendarStore((state) => state.memosByDate[day.dateKey])
   const setMemo = useCalendarStore((state) => state.setMemo)
   const lastCompletedTaskId = useCalendarStore((state) => state.lastCompletedTaskId)
   const plants = usePlantStore((state) => state.plants)
-  const availablePlants = plants.length > 0 ? plants : defaultPlants
-  const [taskValue, setTaskValue] = useState<TaskComposerValue>('watering')
-  const [customTaskTitle, setCustomTaskTitle] = useState('')
-  const [selectedPlantId, setSelectedPlantId] = useState<PlantId>(day.plants[0]?.id ?? availablePlants[0].id)
-  const completedWatering = day.tasks.some((task) => task.type === 'watering' && task.completed)
-  const selectedTaskOption = taskComposerOptions.find((option) => option.value === taskValue) ?? taskComposerOptions[0]
-  const effectiveSelectedPlantId = availablePlants.some((plant) => plant.id === selectedPlantId)
-    ? selectedPlantId
-    : day.plants[0]?.id ?? availablePlants[0].id
-  const selectedPlant = availablePlants.find((plant) => plant.id === effectiveSelectedPlantId) ?? availablePlants[0]
-  const isManualTask = taskValue === 'manual'
-  const trimmedCustomTaskTitle = customTaskTitle.trim()
-  const canAddTask = !isManualTask || trimmedCustomTaskTitle.length > 0
-  const memo = savedMemo ?? '새 잎이 많이 올라오고 있어요. 창가 쪽으로 위치를 옮겨줬어요.'
-  const monthLabel = `${day.year}년 ${day.monthIndex + 1}월`
-
-  function handleAddTask(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    if (!canAddTask) {
-      return
-    }
-
-    addTask({
+  const availablePlants = getDisplayPlants(plants)
+  const dayStatus = getDayStatus(day)
+  const taskComposer = useTaskComposer({
+    date: {
       year: day.year,
       monthIndex: day.monthIndex,
       date: day.date,
-      type: selectedTaskOption.calendarType,
-      title: isManualTask ? trimmedCustomTaskTitle : selectedTaskOption.title,
-      plantId: selectedPlant.id,
-      plantKind: selectedPlant.kind,
-      time: selectedTaskOption.time,
-    })
-
-    if (isManualTask) {
-      setCustomTaskTitle('')
-    }
-  }
+    },
+    plants: availablePlants,
+    initialPlantId: day.plants[0]?.id,
+  })
+  const memo = savedMemo ?? '새 잎이 많이 올라오고 있어요. 창가 쪽으로 위치를 옮겨줬어요.'
+  const monthLabel = `${day.year}년 ${day.monthIndex + 1}월`
 
   return (
     <DetailPanel season={season}>
@@ -145,7 +154,7 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
       <SeasonLine season={season}>
         <span />
         {seasonMeta[season].label}
-        <strong>{completedWatering ? '토양이 젖어 있어요' : day.tasks.length > 0 ? '수행할 일정이 있어요' : '예정된 일정 없음'}</strong>
+        <strong>{dayStatus}</strong>
       </SeasonLine>
       <DetailScene>
         <SoilBand season={season} day={withMoisture({ ...day, inMonth: true }, getBaseMoisture(season))} />
@@ -155,76 +164,14 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
       </DetailScene>
       <DetailSection>
         <h3>오늘의 일정</h3>
-        <TaskComposer onSubmit={handleAddTask}>
-          <TaskSelect
-            aria-label="추가할 일정 선택"
-            value={taskValue}
-            onChange={(event) => setTaskValue(event.target.value as TaskComposerValue)}
-          >
-            {taskComposerOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </TaskSelect>
-          <TaskSelect
-            aria-label="일정을 추가할 식물 선택"
-            value={effectiveSelectedPlantId}
-            onChange={(event) => setSelectedPlantId(event.target.value)}
-          >
-            {availablePlants.map((plant) => (
-              <option key={plant.id} value={plant.id}>
-                {plant.name}
-              </option>
-            ))}
-          </TaskSelect>
-          {isManualTask ? (
-            <TaskInput
-              aria-label="직접 입력할 일정"
-              placeholder="할일 입력"
-              value={customTaskTitle}
-              onChange={(event) => setCustomTaskTitle(event.target.value)}
-            />
-          ) : null}
-          <AddTaskButton type="submit" disabled={!canAddTask}>
-            추가
-          </AddTaskButton>
-        </TaskComposer>
-        {day.tasks.length > 0 ? (
-          <TaskList>
-            {day.tasks.map((task) => (
-              <TaskItem key={task.id} completed={task.completed} highlight={lastCompletedTaskId === task.id}>
-                <TaskIcon>{task.completed ? '✓' : taskTone[task.type].icon}</TaskIcon>
-                <TaskCopy>
-                  <strong>{task.title}</strong>
-                  <span>
-                    {task.time} · {task.plant.name}
-                  </span>
-                </TaskCopy>
-                <TaskAction type="button" completed={task.completed} disabled={task.completed} onClick={() => completeTask(task.id)}>
-                  {task.completed ? '완료됨' : '수행'}
-                </TaskAction>
-              </TaskItem>
-            ))}
-          </TaskList>
-        ) : (
-          <TaskEmpty>등록된 일정이 없습니다.</TaskEmpty>
-        )}
+        <TaskComposerForm taskComposer={taskComposer} plants={availablePlants} />
+        <DayTaskList
+          tasks={day.tasks}
+          lastCompletedTaskId={lastCompletedTaskId}
+          onCompleteTask={completeTask}
+        />
       </DetailSection>
-      <DetailSection>
-        <h3>이 날의 식물 상태</h3>
-        {day.plants.map((plant) => (
-          <DetailPlant key={`detail-line-${plant.id}`} data-detail-plant-row={plant.kind} style={{ '--tone': plant.tone } as CSSProperties}>
-            <PlantAvatar plant={plant} />
-            <span>{plant.name}</span>
-            <i />
-            <MiniScene>
-              <SoilBand season={season} day={withMoisture({ ...day, inMonth: true }, getBaseMoisture(season))} />
-              <PottedPlantCluster compact season={season} day={day} plant={plant} index={0} total={1} growth={2} />
-            </MiniScene>
-          </DetailPlant>
-        ))}
-      </DetailSection>
+      <DetailPlantsSection season={season} day={day} />
       <DetailSection>
         <h3>메모</h3>
         <MemoField
@@ -235,6 +182,104 @@ export function DayDetail({ season, day, onClose }: { season: Season; day: Calen
         />
       </DetailSection>
     </DetailPanel>
+  )
+}
+
+function TaskComposerForm({ taskComposer, plants }: { taskComposer: TaskComposerState; plants: Plant[] }) {
+  return (
+    <TaskComposer onSubmit={taskComposer.handleAddTask}>
+      <TaskSelect
+        aria-label="추가할 일정 선택"
+        value={taskComposer.taskValue}
+        onChange={(event) => taskComposer.setTaskValue(event.target.value as TaskComposerValue)}
+      >
+        {taskComposerOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </TaskSelect>
+      <TaskSelect
+        aria-label="일정을 추가할 식물 선택"
+        value={taskComposer.effectivePlantId}
+        onChange={(event) => taskComposer.setSelectedPlantId(event.target.value)}
+      >
+        {plants.map((plant) => (
+          <option key={plant.id} value={plant.id}>
+            {plant.name}
+          </option>
+        ))}
+      </TaskSelect>
+      {taskComposer.isManualTask ? (
+        <TaskInput
+          aria-label="직접 입력할 일정"
+          placeholder="할일 입력"
+          value={taskComposer.customTaskTitle}
+          onChange={(event) => taskComposer.setCustomTaskTitle(event.target.value)}
+        />
+      ) : null}
+      <AddTaskButton type="submit" disabled={!taskComposer.canAddTask}>
+        추가
+      </AddTaskButton>
+    </TaskComposer>
+  )
+}
+
+function DayTaskList({
+  tasks,
+  lastCompletedTaskId,
+  onCompleteTask,
+}: {
+  tasks: CalendarTask[]
+  lastCompletedTaskId: string | undefined
+  onCompleteTask: (taskId: string) => void
+}) {
+  if (tasks.length === 0) {
+    return <TaskEmpty>등록된 일정이 없습니다.</TaskEmpty>
+  }
+
+  return (
+    <TaskList>
+      {tasks.map((task) => (
+        <TaskItem key={task.id} completed={task.completed} highlight={lastCompletedTaskId === task.id}>
+          <TaskIcon>{task.completed ? '✓' : taskTone[task.type].icon}</TaskIcon>
+          <TaskCopy>
+            <strong>{task.title}</strong>
+            <span>
+              {task.time} · {task.plant.name}
+            </span>
+          </TaskCopy>
+          <TaskAction type="button" completed={task.completed} disabled={task.completed} onClick={() => onCompleteTask(task.id)}>
+            {task.completed ? '완료됨' : '수행'}
+          </TaskAction>
+        </TaskItem>
+      ))}
+    </TaskList>
+  )
+}
+
+function DetailPlantsSection({ season, day }: { season: Season; day: CalendarDay }) {
+  return (
+    <DetailSection>
+      <h3>이 날의 식물 상태</h3>
+      {day.plants.map((plant) => (
+        <DetailPlantRow key={`detail-line-${plant.id}`} season={season} day={day} plant={plant} />
+      ))}
+    </DetailSection>
+  )
+}
+
+function DetailPlantRow({ season, day, plant }: { season: Season; day: CalendarDay; plant: Plant }) {
+  return (
+    <DetailPlant data-detail-plant-row={plant.kind} style={{ '--tone': plant.tone } as CSSProperties}>
+      <PlantAvatar plant={plant} />
+      <span>{plant.name}</span>
+      <i />
+      <MiniScene>
+        <SoilBand season={season} day={withMoisture({ ...day, inMonth: true }, getBaseMoisture(season))} />
+        <PottedPlantCluster compact season={season} day={day} plant={plant} index={0} total={1} growth={2} />
+      </MiniScene>
+    </DetailPlant>
   )
 }
 
@@ -285,7 +330,7 @@ function PottedPlant({
   growth: CalendarDay['growth']
   muted: boolean
 }) {
-  const scale = 0.72 + growth * 0.055 + (plant.kind === 'monstera' ? 0.08 : 0)
+  const scale = getPottedPlantScale(plant, growth)
 
   return (
     <CellPlantNode
@@ -311,6 +356,16 @@ function PottedPlant({
       <span className="bloom bloom-b" />
     </CellPlantNode>
   )
+}
+
+function getPottedPlantScale(plant: Plant, growth: CalendarDay['growth']) {
+  const baseScale = 0.72 + growth * 0.055
+
+  if (plant.kind === 'monstera') {
+    return baseScale + 0.08
+  }
+
+  return baseScale
 }
 
 function PlantAvatar({ plant }: { plant: Plant }) {

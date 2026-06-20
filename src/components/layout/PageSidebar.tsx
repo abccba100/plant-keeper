@@ -4,7 +4,7 @@ import { Icon, type IconName } from '../common/Icon'
 import { navigate } from '../../api/navigation'
 import { useThemeStore } from '../../store/themeStore'
 import { usePlantStore } from '../../store/plantStore'
-import { getPlantTone, plantKinds } from '../../store/plantData'
+import { getPlantTone, plantKinds, type PlantKind } from '../../store/plantData'
 
 interface NavItem {
   icon: IconName
@@ -31,22 +31,13 @@ export function PageSidebar({ season = 'spring', activePath }: Props) {
   const plants = usePlantStore((state) => state.plants)
   const addPlant = usePlantStore((state) => state.addPlant)
   const [addOpen, setAddOpen] = useState(false)
-  const [plantName, setPlantName] = useState('')
   const nextKind = plantKinds[plants.length % plantKinds.length]
 
   function closeAddModal() {
     setAddOpen(false)
-    setPlantName('')
   }
 
-  function handleDirectAdd(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    const name = plantName.trim()
-    if (!name) {
-      return
-    }
-
+  function addPlantByName(name: string) {
     addPlant({
       name,
       kind: nextKind,
@@ -86,7 +77,7 @@ export function PageSidebar({ season = 'spring', activePath }: Props) {
           <h2>
             내 식물
             <button type="button" aria-label="식물 추가" onClick={() => setAddOpen(true)}>
-              <Icon name="plus" style={{ width: 14, height: 14 }} />
+              <Icon name="plus" className="sidebar-add-icon" />
             </button>
           </h2>
           {plants.map((plant) => (
@@ -123,32 +114,59 @@ export function PageSidebar({ season = 'spring', activePath }: Props) {
         </div>
       </aside>
 
-      {addOpen ? (
-        <div className="plant-add-overlay" onClick={closeAddModal}>
-          <form className="plant-add-modal" onSubmit={handleDirectAdd} onClick={(event) => event.stopPropagation()}>
-            <button className="plant-add-close" type="button" aria-label="닫기" onClick={closeAddModal}>
-              <Icon name="x" />
-            </button>
-            <span className="plant-add-icon">
-              <PlantAvatar kind={nextKind} season={season} />
-            </span>
-            <h2>식물 추가</h2>
-            <label>
-              식물 이름
-              <input
-                autoFocus
-                value={plantName}
-                onChange={(event) => setPlantName(event.target.value)}
-                placeholder="예: 거실 몬스테라"
-              />
-            </label>
-            <div className="plant-add-actions">
-              <button className="btn-ghost" type="button" onClick={closeAddModal}>취소</button>
-              <button className="btn-primary" type="submit" disabled={plantName.trim().length === 0}>추가</button>
-            </div>
-          </form>
-        </div>
-      ) : null}
+      {addOpen ? <AddPlantModal season={season} plantKind={nextKind} onClose={closeAddModal} onAdd={addPlantByName} /> : null}
     </>
+  )
+}
+
+function AddPlantModal({
+  season,
+  plantKind,
+  onClose,
+  onAdd,
+}: {
+  season: Season
+  plantKind: PlantKind
+  onClose: () => void
+  onAdd: (name: string) => void
+}) {
+  const [plantName, setPlantName] = useState('')
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    const name = plantName.trim()
+    if (!name) {
+      return
+    }
+
+    onAdd(name)
+  }
+
+  return (
+    <div className="plant-add-overlay" onClick={onClose}>
+      <form className="plant-add-modal" onSubmit={handleSubmit} onClick={(event) => event.stopPropagation()}>
+        <button className="plant-add-close" type="button" aria-label="닫기" onClick={onClose}>
+          <Icon name="x" />
+        </button>
+        <span className="plant-add-icon">
+          <PlantAvatar kind={plantKind} season={season} />
+        </span>
+        <h2>식물 추가</h2>
+        <label>
+          식물 이름
+          <input
+            autoFocus
+            value={plantName}
+            onChange={(event) => setPlantName(event.target.value)}
+            placeholder="예: 거실 몬스테라"
+          />
+        </label>
+        <div className="plant-add-actions">
+          <button className="btn-ghost" type="button" onClick={onClose}>취소</button>
+          <button className="btn-primary" type="submit" disabled={plantName.trim().length === 0}>추가</button>
+        </div>
+      </form>
+    </div>
   )
 }

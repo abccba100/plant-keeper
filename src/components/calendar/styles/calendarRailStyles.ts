@@ -3,6 +3,15 @@ import { radii, seasonTheme } from '../../styles/design-system/tokens'
 import type { Season } from '../../../store/calendarData'
 import { seasonDecor } from '../decor/seasonDecorRegistry'
 
+const tipRibbon = {
+  top: { spring: '-18px', summer: '-14px', autumn: '-16px', winter: '-18px' },
+  right: { spring: '12px', summer: '12px', autumn: '14px', winter: '12px' },
+  width: { spring: '64px', summer: '56px', autumn: '56px', winter: '48px' },
+  aspectRatio: { spring: '314 / 215', summer: '309 / 264', autumn: '390 / 372', winter: '230 / 226' },
+  opacity: { spring: 0.9, summer: 0.82, autumn: 0.9, winter: 0.74 },
+  rotate: { spring: '-8deg', summer: '8deg', autumn: '10deg', winter: '-8deg' },
+}
+
 export const RightPanel = styled.aside`
   position: relative;
   z-index: 2;
@@ -80,10 +89,10 @@ export const TipCard = styled(RailCard)<{ season: Season }>`
 export const TipRibbon = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 1;
-  top: ${({ season }) => (season === 'winter' ? '-18px' : season === 'autumn' ? '-16px' : season === 'summer' ? '-14px' : '-18px')};
-  right: ${({ season }) => (season === 'autumn' ? '14px' : '12px')};
-  width: ${({ season }) => (season === 'spring' ? '64px' : season === 'summer' ? '56px' : season === 'autumn' ? '56px' : '48px')};
-  aspect-ratio: ${({ season }) => (season === 'spring' ? '314 / 215' : season === 'summer' ? '309 / 264' : season === 'autumn' ? '390 / 372' : '230 / 226')};
+  top: ${({ season }) => tipRibbon.top[season]};
+  right: ${({ season }) => tipRibbon.right[season]};
+  width: ${({ season }) => tipRibbon.width[season]};
+  aspect-ratio: ${({ season }) => tipRibbon.aspectRatio[season]};
   pointer-events: none;
   display: block;
   background-image: url(${({ season }) => seasonDecor[season].ribbon});
@@ -91,8 +100,8 @@ export const TipRibbon = styled.span<{ season: Season }>`
   background-position: right top;
   background-size: contain;
   backface-visibility: hidden;
-  opacity: ${({ season }) => (season === 'winter' ? 0.74 : season === 'summer' ? 0.82 : 0.9)};
-  transform: rotate(${({ season }) => (season === 'spring' ? '-8deg' : season === 'summer' ? '8deg' : season === 'autumn' ? '10deg' : '-8deg')});
+  opacity: ${({ season }) => tipRibbon.opacity[season]};
+  transform: rotate(${({ season }) => tipRibbon.rotate[season]});
 `
 
 export const TipGarden = styled.div`

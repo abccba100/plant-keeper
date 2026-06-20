@@ -60,6 +60,13 @@ export const defaultSelectedDateBySeason: Record<Season, number> = {
   winter: 25,
 }
 
+type ScheduledTask = {
+  type: CalendarTaskType
+  title: string
+  plant: Plant
+  time: string
+}
+
 const representativeMonthBySeason: Record<Season, number> = {
   spring: 3,
   summer: 6,
@@ -204,12 +211,9 @@ export function getCalendarDays(
     const date = currentDate.getDate()
     const inMonth = currentDate.getFullYear() === calendarInfo.year && currentDate.getMonth() === calendarInfo.monthIndex
     const dateKey = getCalendarDateKey(currentDate.getFullYear(), currentDate.getMonth(), date)
-    const density = (inMonth ? ((index + date) % 4) : 0) as CalendarDay['density']
-    const plantCount = inMonth ? Math.max(1, Math.min(3, density + 1)) : 1
-    const offset = (index + date) % plantCatalog.length
-    const dayPlants = Array.from({ length: plantCount }, (_, plantIndex) => plantCatalog[(offset + plantIndex) % plantCatalog.length])
+    const density = getDayDensity(index, date, inMonth)
+    const dayPlants = getDayPlants(plantCatalog, index, date, density, inMonth)
     const tasks = createDayTasks(season, dateKey, date, index, inMonth, dayPlants, completedTaskIds, userTasksByDate, plantCatalog)
-    const hasPendingWatering = tasks.some((task) => task.type === 'watering' && !task.completed)
 
     return {
       year: currentDate.getFullYear(),
@@ -220,8 +224,8 @@ export function getCalendarDays(
       isSunday: currentDate.getDay() === 0,
       isToday: inMonth && date === calendarInfo.todayDate,
       isSelected: inMonth && date === selectedDate,
-      moisture: season === 'winter' ? 'frost' : hasPendingWatering ? 'dry' : 'balanced',
-      growth: ((index + date) % 4) as CalendarDay['growth'],
+      moisture: getDayMoisture(season, tasks),
+      growth: getDayGrowth(index, date),
       density,
       plants: dayPlants,
       tasks,
@@ -233,10 +237,65 @@ export function getPlantMoisture(day: CalendarDay, plant: Plant): CalendarMoistu
   const wateringTask = day.tasks.find((task) => task.type === 'watering' && task.plant.id === plant.id)
 
   if (!wateringTask) {
-    return day.moisture === 'frost' ? 'frost' : 'balanced'
+    return getMoistureWithoutWatering(day.moisture)
   }
 
-  return wateringTask.completed ? 'wet' : day.moisture === 'frost' ? 'frost' : 'dry'
+  if (wateringTask.completed) {
+    return 'wet'
+  }
+
+  if (day.moisture === 'frost') {
+    return 'frost'
+  }
+
+  return 'dry'
+}
+
+function getDayMoisture(season: Season, tasks: CalendarTask[]): CalendarMoisture {
+  if (season === 'winter') {
+    return 'frost'
+  }
+
+  const hasPendingWatering = tasks.some((task) => task.type === 'watering' && !task.completed)
+
+  return hasPendingWatering ? 'dry' : 'balanced'
+}
+
+function getMoistureWithoutWatering(dayMoisture: CalendarMoisture): CalendarMoisture {
+  if (dayMoisture === 'frost') {
+    return 'frost'
+  }
+
+  return 'balanced'
+}
+
+function getDayDensity(index: number, date: number, inMonth: boolean): CalendarDay['density'] {
+  if (!inMonth) {
+    return 0
+  }
+
+  const value = (index + date) % 4
+
+  if (value === 1) return 1
+  if (value === 2) return 2
+  if (value === 3) return 3
+  return 0
+}
+
+function getDayGrowth(index: number, date: number): CalendarDay['growth'] {
+  const value = (index + date) % 4
+
+  if (value === 1) return 1
+  if (value === 2) return 2
+  if (value === 3) return 3
+  return 0
+}
+
+function getDayPlants(plantCatalog: Plant[], index: number, date: number, density: CalendarDay['density'], inMonth: boolean) {
+  const plantCount = inMonth ? Math.max(1, Math.min(3, density + 1)) : 1
+  const offset = (index + date) % plantCatalog.length
+
+  return Array.from({ length: plantCount }, (_, plantIndex) => plantCatalog[(offset + plantIndex) % plantCatalog.length])
 }
 
 function createDayTasks(
@@ -254,7 +313,21 @@ function createDayTasks(
     return []
   }
 
-  const tasks: Omit<CalendarTask, 'id' | 'completed'>[] = []
+  const scheduledTasks = createScheduledTasks(season, dateKey, date, index, dayPlants, completedTaskIds)
+  const userTasks = createUserTasks(dateKey, dayPlants[0], completedTaskIds, userTasksByDate, plantCatalog)
+
+  return [...scheduledTasks, ...userTasks]
+}
+
+function createScheduledTasks(
+  season: Season,
+  dateKey: string,
+  date: number,
+  index: number,
+  dayPlants: Plant[],
+  completedTaskIds: CompletedTaskMap,
+) {
+  const tasks: ScheduledTask[] = []
   const firstPlant = dayPlants[0]
   const secondPlant = dayPlants[1] ?? dayPlants[0]
 
@@ -263,7 +336,7 @@ function createDayTasks(
       type: 'watering',
       title: '물주기',
       plant: firstPlant,
-      time: season === 'summer' ? '오전 8:30' : season === 'winter' ? '오전 10:30' : '오전 9:00',
+      time: getWateringTime(season),
     })
   }
 
@@ -294,7 +367,7 @@ function createDayTasks(
     })
   }
 
-  const scheduledTasks = tasks.map((task) => {
+  return tasks.map((task) => {
     const id = `${dateKey}-${task.type}-${task.plant.id}`
 
     return {
@@ -303,14 +376,17 @@ function createDayTasks(
       completed: completedTaskIds[id] === true,
     }
   })
+}
 
-  const userTasks = (userTasksByDate[dateKey] ?? []).map((task) => {
-    const plant =
-      plantCatalog.find((candidate) => candidate.id === task.plantId) ??
-      plantCatalog.find((candidate) => candidate.kind === task.plantKind) ??
-      plants.find((candidate) => candidate.id === task.plantId) ??
-      plants.find((candidate) => candidate.kind === task.plantKind) ??
-      firstPlant
+function createUserTasks(
+  dateKey: string,
+  fallbackPlant: Plant,
+  completedTaskIds: CompletedTaskMap,
+  userTasksByDate: UserCalendarTaskMap,
+  plantCatalog: Plant[],
+) {
+  return (userTasksByDate[dateKey] ?? []).map((task) => {
+    const plant = findTaskPlant(task, plantCatalog, fallbackPlant)
 
     return {
       id: task.id,
@@ -321,6 +397,26 @@ function createDayTasks(
       completed: completedTaskIds[task.id] === true,
     }
   })
+}
 
-  return [...scheduledTasks, ...userTasks]
+function findTaskPlant(task: UserCalendarTask, plantCatalog: Plant[], fallbackPlant: Plant) {
+  return (
+    plantCatalog.find((candidate) => candidate.id === task.plantId) ??
+    plantCatalog.find((candidate) => candidate.kind === task.plantKind) ??
+    plants.find((candidate) => candidate.id === task.plantId) ??
+    plants.find((candidate) => candidate.kind === task.plantKind) ??
+    fallbackPlant
+  )
+}
+
+function getWateringTime(season: Season) {
+  if (season === 'summer') {
+    return '오전 8:30'
+  }
+
+  if (season === 'winter') {
+    return '오전 10:30'
+  }
+
+  return '오전 9:00'
 }

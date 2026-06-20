@@ -65,14 +65,14 @@ export function InputCard({
             <span className="hint">잎과 줄기가 잘 보이게 올려주세요.</span>
           </label>
           {photoUrl ? (
-            <div className="dropzone filled" onClick={onPhotoClick} style={{ cursor: 'pointer' }}>
-              <div className="photo-frame" style={{ aspectRatio: 'auto', height: 210, borderRadius: 0, border: 'none' }}>
+            <div className="dropzone filled clickable" onClick={onPhotoClick}>
+              <div className="photo-frame analyze-photo-frame">
                 <img className="scene" src={photoUrl} alt="업로드한 식물 상태 사진" />
                 <span className="photo-tag"><Icon name="image" />상태 사진 변경</span>
               </div>
             </div>
           ) : (
-            <div className="dropzone compact" onClick={onPhotoClick} style={{ cursor: 'pointer' }}>
+            <div className="dropzone compact clickable" onClick={onPhotoClick}>
               <svg className="dz-illus" viewBox="0 0 120 120" aria-hidden="true">
                 <GardenScene season="spring" plants={[{ kind: plant?.kind ?? 'monstera' }]} />
               </svg>
@@ -85,7 +85,7 @@ export function InputCard({
           {error && <div className="opt-hint" role="alert">{error}</div>}
         </div>
 
-        <button className="btn-primary full" style={{ height: 46 }} disabled={!canStart} onClick={onStart}>
+        <button className="btn-primary full analyze-start-button" disabled={!canStart} onClick={onStart}>
           <Icon name="scan" />AI 분석 시작하기
         </button>
       </div>
@@ -146,7 +146,7 @@ export function QuestionsCard({
                     {q.multi && <div className="opt-hint">여러 개 선택 가능 · 선택 후 다음을 눌러주세요.</div>}
                   </>
                 ) : (
-                  <div style={{ marginTop: 8 }}>
+                  <div className="answered-row">
                     <div className="user-answer">
                       <span className="bub">
                         <Icon name="check" />
@@ -174,15 +174,15 @@ export function QuestionsCard({
 export function AnalyzingCard() {
   return (
     <div className="reg-card">
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '46px 20px' }}>
-        <div className="scan-ring" style={{ width: 60, height: 60 }}>
+      <div className="analyzing-panel">
+        <div className="scan-ring analyzing-ring">
           <svg viewBox="0 0 50 50" aria-hidden="true">
             <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(95,142,98,0.18)" strokeWidth="5" />
             <circle cx="25" cy="25" r="20" fill="none" stroke="var(--accent-deep)" strokeWidth="5" strokeLinecap="round" strokeDasharray="40 120" />
           </svg>
         </div>
         <div className="analyze-text">AI가 상태를 진단하고 있어요</div>
-        <div className="analyze-sub" style={{ marginTop: 0 }}>사진과 답변을 종합해 원인을 찾는 중</div>
+        <div className="analyze-sub analyzing-sub">사진과 답변을 종합해 원인을 찾는 중</div>
       </div>
     </div>
   )
@@ -222,7 +222,7 @@ export function DiagnosisCards({ diagnosis, onRegister, onRetry }: { diagnosis: 
           <div className="summary-copy">
             <h2>{diagnosis.gradeLabel}</h2>
             <span className={`grade-badge ${diagnosis.grade}`}>
-              <Icon name="info" style={{ width: 13, height: 13 }} />
+              <Icon name="info" className="icon-xs" />
               {diagnosis.grade === 'ok' ? '안정' : diagnosis.grade === 'warn' ? '주의' : '긴급'}
             </span>
             <p>{diagnosis.summary}</p>
@@ -232,7 +232,7 @@ export function DiagnosisCards({ diagnosis, onRegister, onRetry }: { diagnosis: 
 
       <div className="reg-card">
         <h3 className="section-label">
-          <Icon name="search" style={{ width: 16, height: 16, color: 'var(--accent-deep)' }} />
+          <Icon name="search" className="section-icon" />
           발견한 문제와 원인
           <span className="tagn">{diagnosis.issues.length}건</span>
         </h3>
@@ -249,7 +249,7 @@ export function DiagnosisCards({ diagnosis, onRegister, onRetry }: { diagnosis: 
 
       <div className="reg-card">
         <h3 className="section-label">
-          <Icon name="bulb" style={{ width: 16, height: 16, color: 'var(--accent-deep)' }} />
+          <Icon name="bulb" className="section-icon" />
           해결 방법
           <span className="tagn">단계별</span>
         </h3>
@@ -265,7 +265,7 @@ export function DiagnosisCards({ diagnosis, onRegister, onRetry }: { diagnosis: 
 
       <div className="reg-card">
         <h3 className="section-label">
-          <Icon name="calendar" style={{ width: 16, height: 16, color: 'var(--accent-deep)' }} />
+          <Icon name="calendar" className="section-icon" />
           추천 관리 일정
           <span className="tagn">캘린더 등록 가능</span>
         </h3>
@@ -302,7 +302,7 @@ export function AnalyzeRail({ state, diagnosis }: { state: AnalyzeState; diagnos
         </div>
         <div className="guide-card">
           <h3><Icon name="bulb" />회복 팁</h3>
-          <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.8, color: '#353c34' }}>
+          <p className="guide-copy">
             회복 기간에는 비료를 잠시 멈추고 물주기와 빛만 안정적으로 맞춰주는 편이 좋아요.
           </p>
           <div className="guide-garden">

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useState } from 'react'
 import { CanopyAtmosphere } from '../calendar/atmosphere/CanopyAtmosphere'
 import { taskComposerOptions, taskTone, type TaskComposerValue } from '../calendar/calendarConfig'
 import {
@@ -41,9 +41,10 @@ import {
   seasonMeta,
   type Season,
 } from '../../store/calendarData'
-import { plants as defaultPlants, type PlantId } from '../../store/plantData'
+import { plants as defaultPlants } from '../../store/plantData'
 import { useCalendarStore } from '../../store/calendarStore'
 import { usePlantStore } from '../../store/plantStore'
+import { useTaskComposer } from '../../hooks/useTaskComposer'
 
 const DailyWorkspace = styled.main`
   position: relative;
@@ -166,7 +167,6 @@ export function DailyView() {
   const completedTaskIds = useCalendarStore((s) => s.completedTaskIds)
   const userTasksByDate = useCalendarStore((s) => s.userTasksByDate)
   const memosByDate = useCalendarStore((s) => s.memosByDate)
-  const addTask = useCalendarStore((s) => s.addTask)
   const completeTask = useCalendarStore((s) => s.completeTask)
   const setMemo = useCalendarStore((s) => s.setMemo)
   const lastCompletedTaskId = useCalendarStore((s) => s.lastCompletedTaskId)
@@ -195,34 +195,14 @@ export function DailyView() {
   const dateKey = getCalendarDateKey(displayYear, displayMonthIndex, dateNum)
   const savedMemo = memosByDate[dateKey] ?? ''
 
-  const [taskValue, setTaskValue] = useState<TaskComposerValue>('watering')
-  const [customTaskTitle, setCustomTaskTitle] = useState('')
-  const [selectedPlantId, setSelectedPlantId] = useState<PlantId>(availablePlants[0]?.id)
-
-  const isManualTask = taskValue === 'manual'
-  const trimmedCustom = customTaskTitle.trim()
-  const canAddTask = !isManualTask || trimmedCustom.length > 0
-  const selectedOption = taskComposerOptions.find((o) => o.value === taskValue) ?? taskComposerOptions[0]
-  const effectivePlantId = availablePlants.some((p) => p.id === selectedPlantId)
-    ? selectedPlantId
-    : availablePlants[0]?.id
-  const selectedPlant = availablePlants.find((p) => p.id === effectivePlantId) ?? availablePlants[0]
-
-  function handleAddTask(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!canAddTask) return
-    addTask({
+  const taskComposer = useTaskComposer({
+    date: {
       year: displayYear,
       monthIndex: displayMonthIndex,
       date: dateNum,
-      type: selectedOption.calendarType,
-      title: isManualTask ? trimmedCustom : selectedOption.title,
-      plantId: selectedPlant.id,
-      plantKind: selectedPlant.kind,
-      time: selectedOption.time,
-    })
-    if (isManualTask) setCustomTaskTitle('')
-  }
+    },
+    plants: availablePlants,
+  })
 
   return (
     <Shell season={season}>
@@ -283,11 +263,11 @@ export function DailyView() {
 
         <DetailSection>
           <h3>오늘의 일정</h3>
-          <TaskComposer onSubmit={handleAddTask}>
+          <TaskComposer onSubmit={taskComposer.handleAddTask}>
             <TaskSelect
               aria-label="추가할 일정 선택"
-              value={taskValue}
-              onChange={(e) => setTaskValue(e.target.value as TaskComposerValue)}
+              value={taskComposer.taskValue}
+              onChange={(e) => taskComposer.setTaskValue(e.target.value as TaskComposerValue)}
             >
               {taskComposerOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -297,8 +277,8 @@ export function DailyView() {
             </TaskSelect>
             <TaskSelect
               aria-label="일정을 추가할 식물 선택"
-              value={effectivePlantId}
-              onChange={(e) => setSelectedPlantId(e.target.value)}
+              value={taskComposer.effectivePlantId}
+              onChange={(e) => taskComposer.setSelectedPlantId(e.target.value)}
             >
               {availablePlants.map((plant) => (
                 <option key={plant.id} value={plant.id}>
@@ -306,15 +286,15 @@ export function DailyView() {
                 </option>
               ))}
             </TaskSelect>
-            {isManualTask && (
+            {taskComposer.isManualTask && (
               <TaskInput
                 aria-label="직접 입력할 일정"
                 placeholder="할일 입력"
-                value={customTaskTitle}
-                onChange={(e) => setCustomTaskTitle(e.target.value)}
+                value={taskComposer.customTaskTitle}
+                onChange={(e) => taskComposer.setCustomTaskTitle(e.target.value)}
               />
             )}
-            <AddTaskButton type="submit" disabled={!canAddTask}>
+            <AddTaskButton type="submit" disabled={!taskComposer.canAddTask}>
               추가
             </AddTaskButton>
           </TaskComposer>

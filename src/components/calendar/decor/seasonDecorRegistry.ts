@@ -1,9 +1,6 @@
 import type { Season } from '../../../store/calendarData'
 
-// ─── WebP assets ─────────────────────────────────────────────────────────────
-// All images are served as WebP (converted from PNG via `npm run convert-images`).
-// PNG originals are kept as a fallback but are not imported here.
-// ─────────────────────────────────────────────────────────────────────────────
+// Calendar decor uses WebP assets. PNG originals stay in the asset folder only as source files.
 import autumnBranchHero from '../../../assets/calendar-decor/high-res/autumn-hero-flipped.webp?url'
 import autumnGround from '../../../assets/calendar-decor/elements/autumn/decor-09.webp?url'
 import autumnFloater from '../../../assets/calendar-decor/high-res/autumn-floater.webp?url'
@@ -29,7 +26,7 @@ import winterGround from '../../../assets/calendar-decor/high-res/winter-ground.
 import winterMascot from '../../../assets/calendar-decor/high-res/winter-mascot.webp?url'
 import winterRibbon from '../../../assets/calendar-decor/high-res/winter-ribbon.webp?url'
 
-export type SeasonDecorSet = {
+type SeasonDecorSet = {
   hero: string
   sub: string
   mascot: string

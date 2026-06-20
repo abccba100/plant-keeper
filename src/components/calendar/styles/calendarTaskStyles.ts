@@ -15,17 +15,21 @@ export const DetailPanel = styled.aside<{ season: Season }>`
   border: 1px solid ${({ season }) => seasonTheme[season].controlLine};
   border-radius: ${radii.panel};
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.76)),
+    linear-gradient(180deg, color-mix(in srgb, ${({ season }) => seasonTheme[season].calendarSurface} 92%, #ffffff 8%), color-mix(in srgb, ${({ season }) => seasonTheme[season].calendarSurface} 84%, #f3eadf 16%)),
     ${({ season }) => seasonTheme[season].calendarSurface},
     ${({ season }) => seasonTheme[season].pageBackground};
-  box-shadow: ${shadows.floating};
+  box-shadow:
+    ${shadows.floating},
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
 
   html[data-theme='night'] & {
     background:
-      linear-gradient(180deg, rgba(24, 38, 63, 0.92), rgba(10, 18, 32, 0.9)),
+      linear-gradient(180deg, #18263f, #0b1424),
       #0d1728;
-    border-color: rgba(178, 207, 255, 0.18);
-    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.38);
+    border-color: rgba(188, 214, 255, 0.24);
+    box-shadow:
+      0 30px 68px rgba(0, 0, 0, 0.48),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
     color: #edf6ff;
   }
 
@@ -99,15 +103,20 @@ export const DetailSection = styled.section`
   border: 1px solid var(--control-line);
   border-radius: ${radii.panel};
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.56)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(252, 248, 241, 0.88)),
     var(--control-surface);
-  box-shadow: 0 10px 24px rgba(58, 52, 42, 0.055);
+  box-shadow:
+    0 10px 24px rgba(58, 52, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
   html[data-theme='night'] & {
     background:
-      linear-gradient(180deg, rgba(20, 34, 57, 0.82), rgba(11, 20, 36, 0.78)),
+      linear-gradient(180deg, #17263f, #101b30),
       var(--control-surface);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+    border-color: rgba(178, 207, 255, 0.2);
+    box-shadow:
+      0 14px 34px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   & + & {
@@ -227,15 +236,17 @@ export const AddTaskButton = styled.button`
   }
 
   &:disabled {
-    color: #7a8178;
-    background: rgba(255, 255, 255, 0.52);
+    color: #596159;
+    background: color-mix(in srgb, var(--accent) 12%, rgba(255,255,255,0.86));
+    border-color: rgba(92, 88, 72, 0.18);
     box-shadow: none;
     cursor: not-allowed;
   }
 
   html[data-theme='night'] &:disabled {
-    color: #8293aa;
-    background: rgba(18, 30, 51, 0.64);
+    color: #9fb2c8;
+    background: #152238;
+    border-color: rgba(178, 207, 255, 0.2);
   }
 `
 
@@ -250,17 +261,17 @@ export const TaskItem = styled.div<{ completed: boolean; highlight: boolean }>`
   border-radius: ${radii.control};
   background: ${({ completed }) =>
     completed
-      ? 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, rgba(255,255,255,.76)), rgba(255,255,255,.54))'
-      : 'rgba(255, 255, 255, 0.42)'};
+      ? 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, rgba(255,255,255,.94)), rgba(255,255,255,.88))'
+      : 'rgba(255, 255, 255, 0.84)'};
   box-shadow: ${({ completed }) => (completed ? '0 10px 22px color-mix(in srgb, var(--accent) 13%, transparent)' : 'none')};
   animation: ${({ highlight }) => (highlight ? 'scheduleComplete 720ms ease-out' : 'none')};
 
   html[data-theme='night'] & {
     background: ${({ completed }) =>
       completed
-        ? 'linear-gradient(135deg, rgba(127, 168, 255, 0.2), rgba(18, 30, 51, 0.82))'
-        : 'rgba(16, 28, 48, 0.72)'};
-    border-color: rgba(178, 207, 255, 0.16);
+        ? 'linear-gradient(135deg, rgba(127, 168, 255, 0.22), #172842)'
+        : '#111f36'};
+    border-color: rgba(178, 207, 255, 0.2);
   }
 `
 
@@ -373,7 +384,7 @@ export const MemoField = styled.textarea`
   border: 1px solid rgba(92, 88, 72, 0.15);
   border-radius: ${radii.control};
   color: #333b34;
-  background: rgba(255, 255, 255, 0.58);
+  background: rgba(255, 255, 255, 0.9);
   font-size: 13px;
   line-height: 1.75;
 
@@ -388,7 +399,7 @@ export const MemoField = styled.textarea`
 
   html[data-theme='night'] & {
     color: #edf6ff;
-    background: rgba(18, 30, 51, 0.78);
+    background: #111f36;
     border-color: rgba(178, 207, 255, 0.18);
   }
 

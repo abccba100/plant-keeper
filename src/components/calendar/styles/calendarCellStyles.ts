@@ -16,6 +16,190 @@ const nightWetPatch =
 const nightFrostPatch =
   'linear-gradient(180deg, rgba(232, 246, 253, .9), rgba(126, 159, 177, .58) 55%, rgba(48, 68, 78, .74))'
 
+function getLandscapeNightBackground(season: Season) {
+  if (season === 'winter') {
+    return `
+      radial-gradient(ellipse at 50% 96%, rgba(124, 171, 188, 0.16), transparent 62%),
+      linear-gradient(180deg, transparent 8%, rgba(141, 185, 204, 0.08) 68%, rgba(202, 232, 244, 0.1))`
+  }
+
+  return `
+      radial-gradient(ellipse at 50% 94%, rgba(55, 42, 29, 0.13), transparent 58%),
+      radial-gradient(ellipse at 52% 82%, color-mix(in srgb, ${seasonTheme[season].accent} 18%, transparent), transparent 68%),
+      ${seasonTheme[season].particle}`
+}
+
+function getSeasonSprinkles(season: Season) {
+  if (season === 'spring') {
+    return `
+          radial-gradient(circle at 12% 62%, rgba(245, 151, 165, .7) 0 2px, transparent 3px),
+          radial-gradient(circle at 76% 42%, rgba(255, 201, 209, .72) 0 2px, transparent 3px),
+          radial-gradient(circle at 88% 68%, rgba(235, 162, 173, .52) 0 2px, transparent 3px)`
+  }
+
+  if (season === 'autumn') {
+    return `
+          radial-gradient(ellipse at 14% 62%, rgba(205, 103, 32, .72) 0 5px, transparent 6px),
+          radial-gradient(ellipse at 70% 44%, rgba(230, 148, 43, .68) 0 5px, transparent 6px),
+          radial-gradient(ellipse at 92% 68%, rgba(136, 77, 32, .48) 0 4px, transparent 5px)`
+  }
+
+  if (season === 'winter') {
+    return `
+          radial-gradient(circle at 14% 55%, rgba(255,255,255,.95) 0 4px, transparent 5px),
+          radial-gradient(circle at 74% 44%, rgba(235,244,249,.9) 0 5px, transparent 6px),
+          radial-gradient(circle at 90% 65%, rgba(255,255,255,.78) 0 4px, transparent 5px)`
+  }
+
+  return `
+          radial-gradient(circle at 18% 58%, rgba(70, 112, 47, .3) 0 2px, transparent 3px),
+          radial-gradient(circle at 76% 44%, rgba(125, 151, 67, .32) 0 2px, transparent 3px)`
+}
+
+function getCellDecorBackground(season: Season) {
+  if (season === 'spring') {
+    return `
+          radial-gradient(circle at 28% 42%, rgba(245, 153, 169, .58) 0 3px, transparent 4px),
+          radial-gradient(circle at 54% 30%, rgba(255, 208, 214, .72) 0 3px, transparent 4px),
+          radial-gradient(circle at 72% 56%, rgba(245, 153, 169, .52) 0 3px, transparent 4px)`
+  }
+
+  if (season === 'summer') {
+    return `
+          linear-gradient(128deg, transparent 30%, rgba(92, 139, 55, .46) 31% 43%, transparent 44%),
+          radial-gradient(ellipse at 36% 56%, rgba(74, 128, 55, .52) 0 7px, transparent 8px),
+          radial-gradient(ellipse at 70% 44%, rgba(124, 164, 74, .46) 0 6px, transparent 7px)`
+  }
+
+  if (season === 'autumn') {
+    return `
+          radial-gradient(ellipse at 30% 56%, rgba(212, 112, 28, .62) 0 7px, transparent 8px),
+          radial-gradient(ellipse at 70% 44%, rgba(230, 156, 44, .54) 0 6px, transparent 7px),
+          radial-gradient(circle at 50% 70%, rgba(126, 72, 30, .36) 0 3px, transparent 4px)`
+  }
+
+  return `
+          radial-gradient(circle at 30% 44%, rgba(255,255,255,.88) 0 4px, transparent 5px),
+          radial-gradient(circle at 62% 58%, rgba(213,231,241,.78) 0 4px, transparent 5px),
+          radial-gradient(circle at 78% 32%, rgba(255,255,255,.72) 0 3px, transparent 4px)`
+}
+
+function getCellSoilBackground(season: Season, day: CalendarDay) {
+  if (season === 'winter' && day.moisture !== 'wet') {
+    return 'linear-gradient(180deg, rgba(255,255,255,.95), rgba(232,240,245,.84) 45%, rgba(120,105,88,.3) 76%, rgba(255,255,255,.72))'
+  }
+
+  if (day.moisture === 'wet') {
+    return 'linear-gradient(180deg, rgba(108, 89, 63, .3), rgba(72, 52, 36, .78) 54%, rgba(40, 53, 49, .66))'
+  }
+
+  if (day.moisture === 'dry') {
+    return 'linear-gradient(180deg, rgba(196, 151, 91, .45), rgba(131, 84, 49, .72) 56%, rgba(86, 55, 37, .58))'
+  }
+
+  return 'linear-gradient(180deg, rgba(154, 111, 69, .42), rgba(99, 67, 43, .78) 56%, rgba(70, 48, 35, .58))'
+}
+
+function getNightCellSoilBackground(season: Season, day: CalendarDay) {
+  if (day.moisture === 'wet') return nightWetSoil
+  if (season === 'winter') return nightFrostSoil
+  if (day.moisture === 'dry') return nightDrySoil
+  return nightSoil
+}
+
+function getCellSoilPatchBackground(season: Season, moisture: CalendarMoisture) {
+  if (moisture === 'wet') {
+    return 'linear-gradient(180deg, rgba(103, 91, 66, .2), rgba(63, 48, 35, .82) 55%, rgba(37, 57, 53, .62))'
+  }
+
+  if (season === 'winter' || moisture === 'frost') {
+    return 'linear-gradient(180deg, rgba(255,255,255,.92), rgba(228,240,246,.8) 54%, rgba(132,116,94,.32))'
+  }
+
+  if (moisture === 'dry') {
+    return 'linear-gradient(180deg, rgba(206, 160, 96, .34), rgba(137, 88, 51, .68) 58%, rgba(91, 58, 39, .5))'
+  }
+
+  return 'linear-gradient(180deg, rgba(160, 116, 72, .3), rgba(101, 69, 45, .7) 58%, rgba(71, 49, 36, .5))'
+}
+
+function getNightCellSoilPatchBackground(season: Season, moisture: CalendarMoisture) {
+  if (moisture === 'wet') return nightWetPatch
+  if (season === 'winter' || moisture === 'frost') return nightFrostPatch
+  if (moisture === 'dry') return nightDrySoil
+  return nightSoil
+}
+
+function getPotBackground(plant: Plant) {
+  if (plant.kind === 'peperomia') return 'linear-gradient(135deg, #cf813e, #8b5330)'
+  if (plant.kind === 'sansevieria') return 'linear-gradient(135deg, #efe8d7, #9c8f73)'
+  if (plant.kind === 'peace') return 'linear-gradient(135deg, #f7f1e5, #b89668)'
+  return 'linear-gradient(135deg, #fff4e5, #9b8064)'
+}
+
+function getLeafBackground(plant: Plant) {
+  if (plant.kind === 'sansevieria') return 'linear-gradient(90deg, #315f34, #9eb660 48%, #315f34)'
+  if (plant.kind === 'peperomia') return 'radial-gradient(circle at 42% 34%, #93bd6d, #4f813e 72%)'
+  if (plant.kind === 'peace') return 'linear-gradient(135deg, #7fa35d, #3f6d38)'
+  return 'linear-gradient(135deg, #77a95b, #2f6934)'
+}
+
+function getLeafLayout(plant: Plant) {
+  if (plant.kind === 'sansevieria') {
+    return `
+    .stem { display: none; }
+    .leaf {
+      bottom: 14px;
+      left: 50%;
+      width: 6px;
+      height: 36px;
+      border-radius: 85% 85% 16% 16%;
+      transform-origin: bottom center;
+    }
+    .leaf-1 { transform: translateX(-50%) rotate(-22deg); height: 29px; }
+    .leaf-2 { transform: translateX(-50%) rotate(-10deg); height: 35px; }
+    .leaf-3 { transform: translateX(-50%) rotate(3deg); height: 40px; }
+    .leaf-4 { transform: translateX(-50%) rotate(16deg); height: 33px; }
+    .leaf-5 { transform: translateX(-50%) rotate(27deg); height: 25px; }
+    .leaf-6 { display: none; }
+  `
+  }
+
+  if (plant.kind === 'peperomia') {
+    return `
+    .leaf {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .leaf-1 { left: 10px; bottom: 31px; transform: rotate(-24deg); }
+    .leaf-2 { left: 21px; bottom: 35px; transform: rotate(18deg); }
+    .leaf-3 { left: 25px; bottom: 26px; transform: rotate(35deg); }
+    .leaf-4 { left: 13px; bottom: 23px; transform: rotate(-4deg); }
+    .leaf-5 { left: 19px; bottom: 18px; transform: scale(.86); }
+    .leaf-6 { left: 7px; bottom: 20px; transform: scale(.78); }
+  `
+  }
+
+  const leafWidth = plant.kind === 'monstera' ? '16px' : '13px'
+  const leafHeight = plant.kind === 'monstera' ? '15px' : '12px'
+
+  return `
+    .leaf {
+      width: ${leafWidth};
+      height: ${leafHeight};
+      border-radius: 82% 13% 80% 18%;
+      transform-origin: 50% 100%;
+    }
+    .leaf-1 { left: 8px; bottom: 30px; transform: rotate(-36deg); }
+    .leaf-2 { left: 18px; bottom: 36px; transform: rotate(15deg); }
+    .leaf-3 { left: 23px; bottom: 26px; transform: rotate(42deg); }
+    .leaf-4 { left: 12px; bottom: 21px; transform: rotate(-12deg); }
+    .leaf-5 { left: 18px; bottom: 18px; transform: rotate(62deg) scale(.88); }
+    .leaf-6 { left: 6px; bottom: 18px; transform: rotate(-58deg) scale(.82); }
+  `
+}
+
 export const Landscape = styled.div<{ season: Season; day: CalendarDay }>`
   position: absolute;
   left: 0;
@@ -43,15 +227,7 @@ export const Landscape = styled.div<{ season: Season; day: CalendarDay }>`
   }
 
   html[data-theme='night'] &::before {
-    background: ${({ season }) =>
-      season === 'winter'
-        ? `
-      radial-gradient(ellipse at 50% 96%, rgba(124, 171, 188, 0.16), transparent 62%),
-      linear-gradient(180deg, transparent 8%, rgba(141, 185, 204, 0.08) 68%, rgba(202, 232, 244, 0.1))`
-        : `
-      radial-gradient(ellipse at 50% 94%, rgba(55, 42, 29, 0.13), transparent 58%),
-      radial-gradient(ellipse at 52% 82%, color-mix(in srgb, ${seasonTheme[season].accent} 18%, transparent), transparent 68%),
-      ${seasonTheme[season].particle}`};
+    background: ${({ season }) => getLandscapeNightBackground(season)};
     mix-blend-mode: ${({ season }) => (season === 'winter' ? 'normal' : 'soft-light')};
     opacity: ${({ season }) => (season === 'winter' ? 0.36 : 0.34)};
     filter: none;
@@ -114,25 +290,7 @@ export const CellGardenScene = styled.div<{ season: Season; day: CalendarDay }>`
     bottom: 9px;
     height: 19px;
     border-radius: 50%;
-    background: ${({ season }) =>
-      season === 'spring'
-        ? `
-          radial-gradient(circle at 12% 62%, rgba(245, 151, 165, .7) 0 2px, transparent 3px),
-          radial-gradient(circle at 76% 42%, rgba(255, 201, 209, .72) 0 2px, transparent 3px),
-          radial-gradient(circle at 88% 68%, rgba(235, 162, 173, .52) 0 2px, transparent 3px)`
-        : season === 'autumn'
-          ? `
-          radial-gradient(ellipse at 14% 62%, rgba(205, 103, 32, .72) 0 5px, transparent 6px),
-          radial-gradient(ellipse at 70% 44%, rgba(230, 148, 43, .68) 0 5px, transparent 6px),
-          radial-gradient(ellipse at 92% 68%, rgba(136, 77, 32, .48) 0 4px, transparent 5px)`
-          : season === 'winter'
-            ? `
-          radial-gradient(circle at 14% 55%, rgba(255,255,255,.95) 0 4px, transparent 5px),
-          radial-gradient(circle at 74% 44%, rgba(235,244,249,.9) 0 5px, transparent 6px),
-          radial-gradient(circle at 90% 65%, rgba(255,255,255,.78) 0 4px, transparent 5px)`
-            : `
-          radial-gradient(circle at 18% 58%, rgba(70, 112, 47, .3) 0 2px, transparent 3px),
-          radial-gradient(circle at 76% 44%, rgba(125, 151, 67, .32) 0 2px, transparent 3px)`};
+    background: ${({ season }) => getSeasonSprinkles(season)};
     background-size: 48px 18px;
     opacity: ${({ season }) => (season === 'summer' ? 0.46 : 0.72)};
     mix-blend-mode: multiply;
@@ -152,26 +310,7 @@ export const CellGardenScene = styled.div<{ season: Season; day: CalendarDay }>`
     width: 22px;
     height: 17px;
     border-radius: 50%;
-    background: ${({ season }) =>
-      season === 'spring'
-        ? `
-          radial-gradient(circle at 28% 42%, rgba(245, 153, 169, .58) 0 3px, transparent 4px),
-          radial-gradient(circle at 54% 30%, rgba(255, 208, 214, .72) 0 3px, transparent 4px),
-          radial-gradient(circle at 72% 56%, rgba(245, 153, 169, .52) 0 3px, transparent 4px)`
-        : season === 'summer'
-          ? `
-          linear-gradient(128deg, transparent 30%, rgba(92, 139, 55, .46) 31% 43%, transparent 44%),
-          radial-gradient(ellipse at 36% 56%, rgba(74, 128, 55, .52) 0 7px, transparent 8px),
-          radial-gradient(ellipse at 70% 44%, rgba(124, 164, 74, .46) 0 6px, transparent 7px)`
-          : season === 'autumn'
-            ? `
-          radial-gradient(ellipse at 30% 56%, rgba(212, 112, 28, .62) 0 7px, transparent 8px),
-          radial-gradient(ellipse at 70% 44%, rgba(230, 156, 44, .54) 0 6px, transparent 7px),
-          radial-gradient(circle at 50% 70%, rgba(126, 72, 30, .36) 0 3px, transparent 4px)`
-            : `
-          radial-gradient(circle at 30% 44%, rgba(255,255,255,.88) 0 4px, transparent 5px),
-          radial-gradient(circle at 62% 58%, rgba(213,231,241,.78) 0 4px, transparent 5px),
-          radial-gradient(circle at 78% 32%, rgba(255,255,255,.72) 0 3px, transparent 4px)`};
+    background: ${({ season }) => getCellDecorBackground(season)};
     opacity: ${({ day }) => (day.isSelected ? 0.5 : 0.32)};
     mix-blend-mode: multiply;
   }
@@ -249,14 +388,7 @@ export const CellSoil = styled.div<{ season: Season; day: CalendarDay }>`
   z-index: 0;
   height: ${({ season }) => (season === 'winter' ? '18px' : '20px')};
   border-radius: 48% 52% 30% 30%;
-  background: ${({ season, day }) =>
-    season === 'winter' && day.moisture !== 'wet'
-      ? 'linear-gradient(180deg, rgba(255,255,255,.95), rgba(232,240,245,.84) 45%, rgba(120,105,88,.3) 76%, rgba(255,255,255,.72))'
-      : day.moisture === 'wet'
-        ? 'linear-gradient(180deg, rgba(108, 89, 63, .3), rgba(72, 52, 36, .78) 54%, rgba(40, 53, 49, .66))'
-        : day.moisture === 'dry'
-          ? 'linear-gradient(180deg, rgba(196, 151, 91, .45), rgba(131, 84, 49, .72) 56%, rgba(86, 55, 37, .58))'
-          : 'linear-gradient(180deg, rgba(154, 111, 69, .42), rgba(99, 67, 43, .78) 56%, rgba(70, 48, 35, .58))'};
+  background: ${({ season, day }) => getCellSoilBackground(season, day)};
   box-shadow:
     inset 0 4px 8px rgba(255, 255, 255, 0.18),
     0 5px 8px rgba(60, 45, 31, 0.13);
@@ -267,8 +399,7 @@ export const CellSoil = styled.div<{ season: Season; day: CalendarDay }>`
   animation: ${({ day }) => (day.moisture === 'wet' ? 'soilSoak 780ms ease-out' : 'none')};
 
   html[data-theme='night'] & {
-    background: ${({ season, day }) =>
-      day.moisture === 'wet' ? nightWetSoil : season === 'winter' ? nightFrostSoil : day.moisture === 'dry' ? nightDrySoil : nightSoil};
+    background: ${({ season, day }) => getNightCellSoilBackground(season, day)};
     box-shadow:
       inset 0 4px 9px rgba(206, 238, 255, 0.14),
       0 5px 10px rgba(0, 0, 0, 0.24);
@@ -357,14 +488,7 @@ export const CellSoilPatch = styled.span<{ season: Season; moisture: CalendarMoi
   width: ${({ moisture }) => (moisture === 'wet' ? '46px' : '40px')};
   height: ${({ season }) => (season === 'winter' ? '17px' : '19px')};
   border-radius: 50% 50% 34% 34%;
-  background: ${({ season, moisture }) =>
-    moisture === 'wet'
-      ? 'linear-gradient(180deg, rgba(103, 91, 66, .2), rgba(63, 48, 35, .82) 55%, rgba(37, 57, 53, .62))'
-      : season === 'winter' || moisture === 'frost'
-        ? 'linear-gradient(180deg, rgba(255,255,255,.92), rgba(228,240,246,.8) 54%, rgba(132,116,94,.32))'
-        : moisture === 'dry'
-          ? 'linear-gradient(180deg, rgba(206, 160, 96, .34), rgba(137, 88, 51, .68) 58%, rgba(91, 58, 39, .5))'
-          : 'linear-gradient(180deg, rgba(160, 116, 72, .3), rgba(101, 69, 45, .7) 58%, rgba(71, 49, 36, .5))'};
+  background: ${({ season, moisture }) => getCellSoilPatchBackground(season, moisture)};
   box-shadow:
     inset 0 3px 7px rgba(255, 255, 255, 0.17),
     0 4px 7px rgba(59, 43, 30, 0.14);
@@ -372,14 +496,7 @@ export const CellSoilPatch = styled.span<{ season: Season; moisture: CalendarMoi
   animation: ${({ moisture }) => (moisture === 'wet' ? 'anchoredSoilSoak 780ms ease-out' : 'none')};
 
   html[data-theme='night'] & {
-    background: ${({ season, moisture }) =>
-      moisture === 'wet'
-        ? nightWetPatch
-        : season === 'winter' || moisture === 'frost'
-          ? nightFrostPatch
-          : moisture === 'dry'
-            ? nightDrySoil
-            : nightSoil};
+    background: ${({ season, moisture }) => getNightCellSoilPatchBackground(season, moisture)};
     box-shadow:
       inset 0 3px 8px rgba(202, 239, 255, 0.15),
       0 5px 9px rgba(0, 0, 0, 0.26);
@@ -464,14 +581,7 @@ export const CellPlantNode = styled.span<{ active: boolean; plant: Plant; muted:
     width: ${({ plant }) => (plant.kind === 'monstera' ? '18px' : '16px')};
     height: 14px;
     border-radius: 4px 4px 8px 8px;
-    background: ${({ plant }) =>
-      plant.kind === 'peperomia'
-        ? 'linear-gradient(135deg, #cf813e, #8b5330)'
-        : plant.kind === 'sansevieria'
-          ? 'linear-gradient(135deg, #efe8d7, #9c8f73)'
-          : plant.kind === 'peace'
-            ? 'linear-gradient(135deg, #f7f1e5, #b89668)'
-            : 'linear-gradient(135deg, #fff4e5, #9b8064)'};
+    background: ${({ plant }) => getPotBackground(plant)};
     box-shadow:
       inset 0 -5px 7px rgba(54, 35, 20, .16),
       0 4px 6px rgba(45, 33, 23, .12);
@@ -507,66 +617,13 @@ export const CellPlantNode = styled.span<{ active: boolean; plant: Plant; muted:
 
   .leaf {
     position: absolute;
-    background: ${({ plant }) =>
-      plant.kind === 'sansevieria'
-        ? 'linear-gradient(90deg, #315f34, #9eb660 48%, #315f34)'
-        : plant.kind === 'peperomia'
-          ? 'radial-gradient(circle at 42% 34%, #93bd6d, #4f813e 72%)'
-          : plant.kind === 'peace'
-            ? 'linear-gradient(135deg, #7fa35d, #3f6d38)'
-            : 'linear-gradient(135deg, #77a95b, #2f6934)'};
+    background: ${({ plant }) => getLeafBackground(plant)};
     box-shadow:
       inset -2px -2px 4px rgba(28, 53, 27, .14),
       0 2px 4px rgba(40, 60, 35, .08);
   }
 
-  ${({ plant }) =>
-    plant.kind === 'sansevieria'
-      ? `
-    .stem { display: none; }
-    .leaf {
-      bottom: 14px;
-      left: 50%;
-      width: 6px;
-      height: 36px;
-      border-radius: 85% 85% 16% 16%;
-      transform-origin: bottom center;
-    }
-    .leaf-1 { transform: translateX(-50%) rotate(-22deg); height: 29px; }
-    .leaf-2 { transform: translateX(-50%) rotate(-10deg); height: 35px; }
-    .leaf-3 { transform: translateX(-50%) rotate(3deg); height: 40px; }
-    .leaf-4 { transform: translateX(-50%) rotate(16deg); height: 33px; }
-    .leaf-5 { transform: translateX(-50%) rotate(27deg); height: 25px; }
-    .leaf-6 { display: none; }
-  `
-      : plant.kind === 'peperomia'
-        ? `
-    .leaf {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-    }
-    .leaf-1 { left: 10px; bottom: 31px; transform: rotate(-24deg); }
-    .leaf-2 { left: 21px; bottom: 35px; transform: rotate(18deg); }
-    .leaf-3 { left: 25px; bottom: 26px; transform: rotate(35deg); }
-    .leaf-4 { left: 13px; bottom: 23px; transform: rotate(-4deg); }
-    .leaf-5 { left: 19px; bottom: 18px; transform: scale(.86); }
-    .leaf-6 { left: 7px; bottom: 20px; transform: scale(.78); }
-  `
-        : `
-    .leaf {
-      width: ${plant.kind === 'monstera' ? '16px' : '13px'};
-      height: ${plant.kind === 'monstera' ? '15px' : '12px'};
-      border-radius: 82% 13% 80% 18%;
-      transform-origin: 50% 100%;
-    }
-    .leaf-1 { left: 8px; bottom: 30px; transform: rotate(-36deg); }
-    .leaf-2 { left: 18px; bottom: 36px; transform: rotate(15deg); }
-    .leaf-3 { left: 23px; bottom: 26px; transform: rotate(42deg); }
-    .leaf-4 { left: 12px; bottom: 21px; transform: rotate(-12deg); }
-    .leaf-5 { left: 18px; bottom: 18px; transform: rotate(62deg) scale(.88); }
-    .leaf-6 { left: 6px; bottom: 18px; transform: rotate(-58deg) scale(.82); }
-  `}
+  ${({ plant }) => getLeafLayout(plant)}
 
   .bloom {
     position: absolute;

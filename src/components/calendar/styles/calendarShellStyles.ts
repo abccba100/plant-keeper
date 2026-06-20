@@ -11,6 +11,71 @@ const accentDeep: Record<Season, string> = {
   winter: '#4f7693',
 }
 
+const heroBranch = {
+  width: { spring: '382px', summer: '438px', autumn: '470px', winter: '352px' },
+  aspectRatio: { spring: '760 / 543', summer: '760 / 420', autumn: '1536 / 1024', winter: '760 / 483' },
+  transform: { spring: 'rotate(3deg)', summer: 'rotate(1deg)', autumn: 'scaleX(-1) rotate(3deg)', winter: 'rotate(2deg)' },
+  transformOrigin: { spring: 'right top', summer: 'right top', autumn: 'center top', winter: 'right top' },
+  shadowOpacity: { spring: 0.16, summer: 0.17, autumn: 0.22, winter: 0.14 },
+  shadowBlur: { spring: '10px', summer: '12px', autumn: '13px', winter: '10px' },
+  shadowTransform: {
+    spring: 'translate(-12px, 16px) scale(1.01)',
+    summer: 'translate(-14px, 18px) scale(1.012)',
+    autumn: 'translate(16px, 21px) scale(1.012)',
+    winter: 'translate(-10px, 14px) scale(1.008)',
+  },
+  imageOpacity: { spring: 0.82, summer: 0.78, autumn: 0.86, winter: 0.76 },
+  tabletWidth: { spring: '292px', summer: '332px', autumn: '360px', winter: '270px' },
+  mobileWidth: { spring: '218px', summer: '248px', autumn: '280px', winter: '218px' },
+}
+
+const heroShadow = {
+  top: { spring: '164px', summer: '130px', autumn: '224px', winter: '122px' },
+  width: { spring: '326px', summer: '376px', autumn: '406px', winter: '300px' },
+  height: { spring: '68px', summer: '76px', autumn: '90px', winter: '68px' },
+  opacity: { spring: 0.13, summer: 0.16, autumn: 0.18, winter: 0.12 },
+  transform: { spring: '2deg', summer: '-6deg', autumn: '-3deg', winter: '2deg' },
+  tabletTop: { spring: '116px', summer: '104px', autumn: '178px', winter: '116px' },
+  tabletWidth: { spring: '238px', summer: '280px', autumn: '318px', winter: '238px' },
+  tabletOpacity: { spring: 0.1, summer: 0.1, autumn: 0.12, winter: 0.1 },
+}
+
+const subBranch = {
+  left: { spring: '220px', summer: '236px', autumn: '220px', winter: '220px' },
+  top: { spring: '4px', summer: '22px', autumn: '4px', winter: '4px' },
+  width: { spring: '118px', summer: '74px', autumn: '86px', winter: '112px' },
+  aspectRatio: { spring: '620 / 387', summer: '520 / 526', autumn: '540 / 529', winter: '620 / 419' },
+  opacity: { spring: 0.3, summer: 0.38, autumn: 0.3, winter: 0.32 },
+  rotate: { spring: '-6deg', summer: '-8deg', autumn: '-6deg', winter: '-6deg' },
+  tabletWidth: { spring: '86px', summer: '64px', autumn: '86px', winter: '86px' },
+}
+
+const mascot = {
+  right: { spring: '30px', summer: '42px', autumn: '34px', winter: '24px' },
+  top: { spring: '94px', summer: '106px', autumn: '100px', winter: '92px' },
+  width: { spring: '88px', summer: '60px', autumn: '50px', winter: '58px' },
+  aspectRatio: { spring: '360 / 239', summer: '156 / 147', autumn: '99 / 108', winter: '280 / 320' },
+  rotate: { spring: '3deg', summer: '-10deg', autumn: '-9deg', winter: '-4deg' },
+  tabletRight: { spring: '22px', summer: '32px', autumn: '24px', winter: '18px' },
+  tabletTop: { spring: '82px', summer: '84px', autumn: '80px', winter: '76px' },
+  tabletWidth: { spring: '70px', summer: '52px', autumn: '42px', winter: '46px' },
+}
+
+const floater = {
+  left: {
+    spring: 'clamp(390px, 34vw, 520px)',
+    summer: 'clamp(420px, 36vw, 520px)',
+    autumn: 'clamp(420px, 36vw, 520px)',
+    winter: 'clamp(420px, 36vw, 520px)',
+  },
+  top: { spring: '8px', summer: '172px', autumn: '12px', winter: '12px' },
+  width: { spring: '104px', summer: '42px', autumn: '42px', winter: '40px' },
+  aspectRatio: { spring: '700 / 470', summer: '120 / 126', autumn: '260 / 247', winter: '260 / 228' },
+  opacity: { spring: 0.46, summer: 0.72, autumn: 0.82, winter: 0.74 },
+  rotate: { spring: '-6deg', summer: '-8deg', autumn: '18deg', winter: '12deg' },
+  tabletWidth: { spring: '88px', summer: '36px', autumn: '36px', winter: '34px' },
+}
+
 export const Shell = styled.div<{ season: Season }>`
   --accent: ${({ season }) => seasonTheme[season].accent};
   /* --accent-deep: used by PageSidebar */
@@ -95,15 +160,15 @@ export const PageHeroBranch = styled.span<{ season: Season }>`
   z-index: 1;
   top: 0;
   right: 0;
-  width: ${({ season }) => (season === 'spring' ? '382px' : season === 'autumn' ? '470px' : season === 'summer' ? '438px' : '352px')};
-  aspect-ratio: ${({ season }) => (season === 'spring' ? '760 / 543' : season === 'summer' ? '760 / 420' : season === 'autumn' ? '1536 / 1024' : '760 / 483')};
+  width: ${({ season }) => heroBranch.width[season]};
+  aspect-ratio: ${({ season }) => heroBranch.aspectRatio[season]};
   pointer-events: none;
   display: block;
   overflow: visible;
   isolation: isolate;
   backface-visibility: hidden;
-  transform: ${({ season }) => (season === 'autumn' ? 'scaleX(-1) rotate(3deg)' : `rotate(${season === 'summer' ? '1deg' : season === 'winter' ? '2deg' : '3deg'})`)};
-  transform-origin: ${({ season }) => (season === 'autumn' ? 'center top' : 'right top')};
+  transform: ${({ season }) => heroBranch.transform[season]};
+  transform-origin: ${({ season }) => heroBranch.transformOrigin[season]};
 
   &::before,
   &::after {
@@ -121,23 +186,16 @@ export const PageHeroBranch = styled.span<{ season: Season }>`
 
   &::before {
     z-index: 0;
-    opacity: ${({ season }) => (season === 'autumn' ? 0.22 : season === 'summer' ? 0.17 : season === 'winter' ? 0.14 : 0.16)};
-    filter: blur(${({ season }) => (season === 'autumn' ? '13px' : season === 'summer' ? '12px' : '10px')}) brightness(0) saturate(0);
+    opacity: ${({ season }) => heroBranch.shadowOpacity[season]};
+    filter: blur(${({ season }) => heroBranch.shadowBlur[season]}) brightness(0) saturate(0);
     mix-blend-mode: multiply;
-    transform: ${({ season }) =>
-      season === 'autumn'
-        ? 'translate(16px, 21px) scale(1.012)'
-        : season === 'summer'
-          ? 'translate(-14px, 18px) scale(1.012)'
-          : season === 'winter'
-            ? 'translate(-10px, 14px) scale(1.008)'
-            : 'translate(-12px, 16px) scale(1.01)'};
+    transform: ${({ season }) => heroBranch.shadowTransform[season]};
     transform-origin: right top;
   }
 
   &::after {
     z-index: 1;
-    opacity: ${({ season }) => (season === 'winter' ? 0.76 : season === 'spring' ? 0.82 : season === 'summer' ? 0.78 : 0.86)};
+    opacity: ${({ season }) => heroBranch.imageOpacity[season]};
     filter:
       drop-shadow(0 12px 16px color-mix(in srgb, ${({ season }) => seasonTheme[season].accent} 10%, rgba(70, 56, 42, 0.16)))
       drop-shadow(0 4px 7px rgba(69, 55, 39, 0.08));
@@ -145,12 +203,12 @@ export const PageHeroBranch = styled.span<{ season: Season }>`
 
   @media (max-width: 1180px) {
     right: 0;
-    width: ${({ season }) => (season === 'spring' ? '292px' : season === 'summer' ? '332px' : season === 'autumn' ? '360px' : '270px')};
+    width: ${({ season }) => heroBranch.tabletWidth[season]};
   }
 
   @media (max-width: 900px) {
     right: 0;
-    width: ${({ season }) => (season === 'summer' ? '248px' : season === 'autumn' ? '280px' : '218px')};
+    width: ${({ season }) => heroBranch.mobileWidth[season]};
     opacity: 0.62;
   }
 
@@ -162,10 +220,10 @@ export const PageHeroBranch = styled.span<{ season: Season }>`
 export const PageHeroShadow = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 0;
-  top: ${({ season }) => (season === 'spring' ? '164px' : season === 'summer' ? '130px' : season === 'autumn' ? '224px' : '122px')};
+  top: ${({ season }) => heroShadow.top[season]};
   right: 0;
-  width: ${({ season }) => (season === 'spring' ? '326px' : season === 'autumn' ? '406px' : season === 'summer' ? '376px' : '300px')};
-  height: ${({ season }) => (season === 'autumn' ? '90px' : season === 'summer' ? '76px' : '68px')};
+  width: ${({ season }) => heroShadow.width[season]};
+  height: ${({ season }) => heroShadow.height[season]};
   pointer-events: none;
   display: block;
   border-radius: 50%;
@@ -178,15 +236,15 @@ export const PageHeroShadow = styled.span<{ season: Season }>`
     );
   filter: blur(18px);
   mix-blend-mode: multiply;
-  opacity: ${({ season }) => (season === 'winter' ? 0.12 : season === 'spring' ? 0.13 : season === 'summer' ? 0.16 : 0.18)};
-  transform: rotate(${({ season }) => (season === 'summer' ? '-6deg' : season === 'autumn' ? '-3deg' : '2deg')});
+  opacity: ${({ season }) => heroShadow.opacity[season]};
+  transform: rotate(${({ season }) => heroShadow.transform[season]});
   transform-origin: center;
 
   @media (max-width: 1180px) {
     right: 0;
-    top: ${({ season }) => (season === 'summer' ? '104px' : season === 'autumn' ? '178px' : '116px')};
-    width: ${({ season }) => (season === 'summer' ? '280px' : season === 'autumn' ? '318px' : '238px')};
-    opacity: ${({ season }) => (season === 'autumn' ? 0.12 : 0.1)};
+    top: ${({ season }) => heroShadow.tabletTop[season]};
+    width: ${({ season }) => heroShadow.tabletWidth[season]};
+    opacity: ${({ season }) => heroShadow.tabletOpacity[season]};
   }
 
   @media (max-width: 900px) {
@@ -197,10 +255,10 @@ export const PageHeroShadow = styled.span<{ season: Season }>`
 export const PageSubBranch = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 0;
-  left: ${({ season }) => (season === 'summer' ? '236px' : '220px')};
-  top: ${({ season }) => (season === 'summer' ? '22px' : '4px')};
-  width: ${({ season }) => (season === 'spring' ? '118px' : season === 'summer' ? '74px' : season === 'autumn' ? '86px' : '112px')};
-  aspect-ratio: ${({ season }) => (season === 'spring' ? '620 / 387' : season === 'summer' ? '520 / 526' : season === 'autumn' ? '540 / 529' : '620 / 419')};
+  left: ${({ season }) => subBranch.left[season]};
+  top: ${({ season }) => subBranch.top[season]};
+  width: ${({ season }) => subBranch.width[season]};
+  aspect-ratio: ${({ season }) => subBranch.aspectRatio[season]};
   pointer-events: none;
   display: block;
   background-image: url(${({ season }) => seasonDecor[season].sub});
@@ -208,13 +266,13 @@ export const PageSubBranch = styled.span<{ season: Season }>`
   background-position: center;
   background-size: contain;
   backface-visibility: hidden;
-  opacity: ${({ season }) => (season === 'winter' ? 0.32 : season === 'summer' ? 0.38 : 0.3)};
-  transform: rotate(${({ season }) => (season === 'summer' ? '-8deg' : '-6deg')}) scaleX(-1);
+  opacity: ${({ season }) => subBranch.opacity[season]};
+  transform: rotate(${({ season }) => subBranch.rotate[season]}) scaleX(-1);
   transform-origin: center;
 
   @media (max-width: 1180px) {
     left: 192px;
-    width: ${({ season }) => (season === 'summer' ? '64px' : '86px')};
+    width: ${({ season }) => subBranch.tabletWidth[season]};
     opacity: 0.26;
   }
 
@@ -226,10 +284,10 @@ export const PageSubBranch = styled.span<{ season: Season }>`
 export const PageMascot = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 4;
-  right: ${({ season }) => (season === 'spring' ? '30px' : season === 'summer' ? '42px' : season === 'autumn' ? '34px' : '24px')};
-  top: ${({ season }) => (season === 'spring' ? '94px' : season === 'summer' ? '106px' : season === 'autumn' ? '100px' : '92px')};
-  width: ${({ season }) => (season === 'winter' ? '58px' : season === 'summer' ? '60px' : season === 'autumn' ? '50px' : '88px')};
-  aspect-ratio: ${({ season }) => (season === 'winter' ? '280 / 320' : season === 'summer' ? '156 / 147' : season === 'autumn' ? '99 / 108' : '360 / 239')};
+  right: ${({ season }) => mascot.right[season]};
+  top: ${({ season }) => mascot.top[season]};
+  width: ${({ season }) => mascot.width[season]};
+  aspect-ratio: ${({ season }) => mascot.aspectRatio[season]};
   pointer-events: none;
   display: block;
   background-image: url(${({ season }) => seasonDecor[season].mascot});
@@ -238,12 +296,12 @@ export const PageMascot = styled.span<{ season: Season }>`
   background-size: contain;
   backface-visibility: hidden;
   opacity: 0.95;
-  transform: rotate(${({ season }) => (season === 'summer' ? '-10deg' : season === 'autumn' ? '-9deg' : season === 'spring' ? '3deg' : '-4deg')});
+  transform: rotate(${({ season }) => mascot.rotate[season]});
 
   @media (max-width: 1180px) {
-    right: ${({ season }) => (season === 'spring' ? '22px' : season === 'summer' ? '32px' : season === 'autumn' ? '24px' : '18px')};
-    top: ${({ season }) => (season === 'spring' ? '82px' : season === 'summer' ? '84px' : season === 'autumn' ? '80px' : '76px')};
-    width: ${({ season }) => (season === 'spring' ? '70px' : season === 'summer' ? '52px' : season === 'winter' ? '46px' : '42px')};
+    right: ${({ season }) => mascot.tabletRight[season]};
+    top: ${({ season }) => mascot.tabletTop[season]};
+    width: ${({ season }) => mascot.tabletWidth[season]};
     opacity: 0.82;
   }
 
@@ -255,10 +313,10 @@ export const PageMascot = styled.span<{ season: Season }>`
 export const PageFloater = styled.span<{ season: Season }>`
   position: absolute;
   z-index: 3;
-  left: ${({ season }) => (season === 'spring' ? 'clamp(390px, 34vw, 520px)' : 'clamp(420px, 36vw, 520px)')};
-  top: ${({ season }) => (season === 'spring' ? '8px' : season === 'summer' ? '172px' : '12px')};
-  width: ${({ season }) => (season === 'spring' ? '104px' : season === 'summer' ? '42px' : season === 'autumn' ? '42px' : '40px')};
-  aspect-ratio: ${({ season }) => (season === 'spring' ? '700 / 470' : season === 'summer' ? '120 / 126' : season === 'autumn' ? '260 / 247' : '260 / 228')};
+  left: ${({ season }) => floater.left[season]};
+  top: ${({ season }) => floater.top[season]};
+  width: ${({ season }) => floater.width[season]};
+  aspect-ratio: ${({ season }) => floater.aspectRatio[season]};
   pointer-events: none;
   display: block;
   background-image: url(${({ season }) => seasonDecor[season].floater});
@@ -266,12 +324,12 @@ export const PageFloater = styled.span<{ season: Season }>`
   background-position: center;
   background-size: contain;
   backface-visibility: hidden;
-  opacity: ${({ season }) => (season === 'spring' ? 0.46 : season === 'summer' ? 0.72 : season === 'winter' ? 0.74 : 0.82)};
-  transform: rotate(${({ season }) => (season === 'spring' ? '-6deg' : season === 'summer' ? '-8deg' : season === 'winter' ? '12deg' : '18deg')});
+  opacity: ${({ season }) => floater.opacity[season]};
+  transform: rotate(${({ season }) => floater.rotate[season]});
 
   @media (max-width: 1280px) {
     left: clamp(360px, 34vw, 460px);
-    width: ${({ season }) => (season === 'spring' ? '88px' : season === 'winter' ? '34px' : '36px')};
+    width: ${({ season }) => floater.tabletWidth[season]};
     opacity: 0.7;
   }
 

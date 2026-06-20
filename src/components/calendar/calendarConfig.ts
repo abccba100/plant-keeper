@@ -1,8 +1,8 @@
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import { getCalendarMonthInfo, type CalendarDay, type CalendarMoisture, type CalendarMonth, type CalendarTask, type CalendarTaskType, type Season } from '../../store/calendarData'
+import { getCalendarMonthInfo, type CalendarDay, type CalendarMoisture, type CalendarMonth, type CalendarTaskType, type Season } from '../../store/calendarData'
 
-export const taskTone: Record<CalendarTask['type'], { icon: string; label: string }> = {
+export const taskTone: Record<CalendarTaskType, { icon: string; label: string }> = {
   watering: { icon: '◌', label: '물주기' },
   mist: { icon: '≋', label: '분무' },
   rotate: { icon: '⟳', label: '돌리기' },
@@ -35,6 +35,8 @@ export const taskComposerOptions: TaskComposerOption[] = [
 ]
 
 export const leafNodes = Array.from({ length: 6 }, (_, index) => index + 1)
+const CELL_PLANT_SLOTS = [[50], [36, 64], [27, 52, 73]]
+const DETAIL_PLANT_SLOTS = [[50], [35, 65], [24, 52, 78]]
 
 export function getFullCalendarMonthConfig(calendarMonth: CalendarMonth, selectedDate: number) {
   const calendarInfo = getCalendarMonthInfo(calendarMonth, selectedDate)
@@ -48,11 +50,15 @@ export function getFullCalendarMonthConfig(calendarMonth: CalendarMonth, selecte
 export const fullCalendarPlugins = [dayGridPlugin, interactionPlugin]
 
 export function getCellPlantSlot(total: number, index: number) {
-  return (total === 1 ? [50] : total === 2 ? [36, 64] : [27, 52, 73])[index] ?? 50
+  const slotGroup = CELL_PLANT_SLOTS[total - 1] ?? CELL_PLANT_SLOTS[2]
+
+  return slotGroup[index] ?? 50
 }
 
 export function getDetailPlantSlot(total: number, index: number) {
-  return (total === 1 ? [50] : total === 2 ? [35, 65] : [24, 52, 78])[index] ?? 50
+  const slotGroup = DETAIL_PLANT_SLOTS[total - 1] ?? DETAIL_PLANT_SLOTS[2]
+
+  return slotGroup[index] ?? 50
 }
 
 export function getBaseMoisture(season: Season): CalendarMoisture {

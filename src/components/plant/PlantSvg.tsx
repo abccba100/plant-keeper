@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { ComponentType, CSSProperties } from 'react'
 import type { Season } from '../../store/calendarData'
 import type { PlantKind } from '../../store/plantData'
 
@@ -225,7 +225,7 @@ function Peperomia({ season }: { season: Season }) {
   )
 }
 
-const plantGlyphs: Record<PlantKind, React.ComponentType<{ season: Season }>> = {
+const plantGlyphs: Record<PlantKind, ComponentType<{ season: Season }>> = {
   monstera: Monstera,
   peace: PeaceLily,
   sansevieria: Sansevieria,
@@ -247,7 +247,8 @@ function Sprout({ season }: { season: Season }) {
   )
 }
 
-const CELL_SLOTS: Record<number, number[]> = { 1: [50], 2: [33, 67], 3: [24, 50, 76] }
+const CELL_SLOTS = [[50], [33, 67], [24, 50, 76]]
+const WIDE_SCENE_SLOTS = [[50], [36, 64], [26, 50, 74], [20, 40, 60, 80]]
 
 function Ground({ season, w }: { season: Season; w: number }) {
   if (season === 'winter') {
@@ -277,10 +278,10 @@ function Ground({ season, w }: { season: Season; w: number }) {
 export function GardenScene({ plants, season }: { plants: { kind: PlantKind }[]; season: Season }) {
   const w = 120
   const total = Math.min(Math.max(plants.length, 1), 3)
-  const slots = CELL_SLOTS[total]
+  const slots = CELL_SLOTS[total - 1]
   const shown = plants.slice(0, total)
   return (
-    <svg viewBox={`0 0 ${w} 70`} preserveAspectRatio="xMidYEnd meet" aria-hidden="true">
+    <svg viewBox={`0 0 ${w} 70`} preserveAspectRatio="xMidYMax meet" aria-hidden="true">
       <Ground season={season} w={w} />
       {shown.map((plant, i) => {
         const scale = (plant.kind === 'sansevieria' ? 0.46 : 0.5) - (total === 3 ? 0.05 : 0)
@@ -300,7 +301,7 @@ export function GardenScene({ plants, season }: { plants: { kind: PlantKind }[];
 export function WideScene({ plants, season }: { plants: { kind: PlantKind }[]; season: Season }) {
   const w = 320
   const total = Math.min(plants.length, 4)
-  const positions = total === 1 ? [50] : total === 2 ? [36, 64] : total === 3 ? [26, 50, 74] : [20, 40, 60, 80]
+  const positions = WIDE_SCENE_SLOTS[Math.max(total - 1, 0)]
   return (
     <svg viewBox={`0 0 ${w} 132`} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       <Ground season={season} w={w} />

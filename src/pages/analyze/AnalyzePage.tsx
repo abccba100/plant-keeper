@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import '../../components/styles/shell.css'
 import '../../components/styles/register.css'
 import '../../components/styles/analyze.css'
 import { SvgDefs } from '../../components/plant/PlantSvg'
 import { PageSidebar } from '../../components/layout/PageSidebar'
 import { ProgressStepper } from '../../components/common/ProgressStepper'
-import { getImageUploadError, replaceObjectUrl, revokeObjectUrl } from '../../api/imageUpload'
+import { useImageUpload } from '../../hooks/useImageUpload'
 import { CalRegisterModal } from '../../components/analyze/CalRegisterModal'
 
 import { AnalyzingCard, AnalyzeRail, DiagnosisCards, InputCard, QuestionsCard } from '../../components/analyze/AnalyzePanels'
@@ -17,16 +17,14 @@ export function AnalyzePage() {
   const [state, setState] = useState<AnalyzeState>('input')
   const [plant, setPlant] = useState<PlantOption | null>(null)
   const [plantName, setPlantName] = useState('')
-  const [photoUrl, setPhotoUrl] = useState<string>()
-  const [photoFile, setPhotoFile] = useState<File>()
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Answers>({})
   const [aiDiagnosis, setAiDiagnosis] = useState<ReturnType<typeof createDiagnosis>>()
   const [modal, setModal] = useState(false)
-  const [error, setError] = useState<string>()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const diagnosis = useMemo(() => aiDiagnosis ?? createDiagnosis(answers), [aiDiagnosis, answers])
   const addPlant = usePlantStore((store) => store.addPlant)
+  const imageUpload = useImageUpload()
   const selectedPlantKind: PlantKind = plant?.kind ?? 'monstera'
   const selectedPlantName = plantName.trim() || '내 식물'
 
@@ -38,16 +36,7 @@ export function AnalyzePage() {
         : '현재 상태 진단과 맞춤 해결 방법을 확인하세요.'
 
   function pickPhoto(file: File) {
-    const uploadError = getImageUploadError(file)
-
-    if (uploadError) {
-      setError(uploadError)
-      return
-    }
-
-    setError(undefined)
-    setPhotoFile(file)
-    setPhotoUrl((oldUrl) => replaceObjectUrl(oldUrl, file))
+    imageUpload.pickImage(file)
   }
 
   function handleAnswer(question: Question, option: string) {
@@ -74,8 +63,8 @@ export function AnalyzePage() {
       return
     }
 
-    if (!photoFile) {
-      setError('분석할 이미지를 먼저 선택해 주세요.')
+    if (!imageUpload.file) {
+      imageUpload.setUploadError('분석할 이미지를 먼저 선택해 주세요.')
       setState('input')
       return
     }
@@ -84,17 +73,17 @@ export function AnalyzePage() {
 
     try {
       const result = await analyzePlantImage({
-        imageFile: photoFile,
+        imageFile: imageUpload.file,
         mode: 'diagnose',
         plantName: plantName.trim(),
         answers,
       })
 
       setAiDiagnosis(result.diagnosis ?? createDiagnosis(answers))
-      setError(undefined)
+      imageUpload.setUploadError(undefined)
       setState('result')
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'AI 분석에 실패했습니다.')
+      imageUpload.setUploadError(error instanceof Error ? error.message : 'AI 분석에 실패했습니다.')
       setState('questions')
     }
   }
@@ -118,8 +107,6 @@ export function AnalyzePage() {
     setPlant(option)
     setPlantName(option.name)
   }
-
-  useEffect(() => () => revokeObjectUrl(photoUrl), [photoUrl])
 
   return (
     <>
@@ -153,8 +140,8 @@ export function AnalyzePage() {
                 <InputCard
                   plant={plant}
                   plantName={plantName}
-                  photoUrl={photoUrl}
-                  error={error}
+                  photoUrl={imageUpload.fileUrl}
+                  error={imageUpload.uploadError}
                   onPick={selectPlant}
                   onNameChange={(name) => {
                     setPlantName(name)
